@@ -1,0 +1,11 @@
+{
+    "name": "Downloader",
+    "alias": "downloader",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Downloader\\Providers\\DownloaderServiceProvider"
+    ],
+    "files": []
+}
