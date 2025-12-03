@@ -2,55 +2,69 @@
 
 namespace Modules\Downloader\Http\Controllers;
 
-use App\Http\Controllers\Controller;
+use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Modules\Downloader\Constants\Permission;
 
 class DownloaderController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        return view('downloader::index');
-    }
+	public function __construct()
+	{
+		$this->middleware(["permission:" . Permission::VIEW_DOWNLOADER])->only([
+			"index",
+		]);
+	}
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        return view('downloader::create');
-    }
+	/**
+	 * Display a listing of the resource.
+	 */
+	public function index()
+	{
+		return view("downloader::index");
+	}
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request) {}
+	/**
+	 * Show the form for creating a new resource.
+	 */
+	public function create()
+	{
+		return view("downloader::create");
+	}
 
-    /**
-     * Show the specified resource.
-     */
-    public function show($id)
-    {
-        return view('downloader::show');
-    }
+	/**
+	 * Store a newly created resource in storage.
+	 */
+	public function store(Request $request)
+	{
+	}
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit($id)
-    {
-        return view('downloader::edit');
-    }
+	/**
+	 * Show the specified resource.
+	 */
+	public function show($id)
+	{
+		return view("downloader::show");
+	}
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id) {}
+	/**
+	 * Show the form for editing the specified resource.
+	 */
+	public function edit($id)
+	{
+		return view("downloader::edit");
+	}
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id) {}
+	/**
+	 * Update the specified resource in storage.
+	 */
+	public function update(Request $request, $id)
+	{
+	}
+
+	/**
+	 * Remove the specified resource from storage.
+	 */
+	public function destroy($id)
+	{
+	}
 }
