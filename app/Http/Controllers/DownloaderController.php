@@ -20,7 +20,23 @@ class DownloaderController extends Controller
 	 */
 	public function index()
 	{
-		return view("downloader::index");
+		$user = \Auth::user();
+
+		$activeDownloads = method_exists($user, "activeDownloads")
+			? $user->activeDownloads()->get()
+			: collect();
+		$completedDownloads = method_exists($user, "completedDownloads")
+			? $user
+				->completedDownloads()
+				->latest()
+				->take(10)
+				->get()
+			: collect();
+
+		return view(
+			"downloader::index",
+			compact("activeDownloads", "completedDownloads")
+		);
 	}
 
 	/**
