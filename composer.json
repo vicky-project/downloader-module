@@ -1,5 +1,5 @@
 {
-	"name": "nwidart/downloader-module",
+	"name": "vicky-project/downloader-module",
 	"type": "laravel-module",
 	"description": "Application downloader for admin panel vicky-project/admin-panel",
 	"authors": [
