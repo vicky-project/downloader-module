@@ -8,7 +8,7 @@
   <div class="card-body">
     <div class="row mb-2">
       <div class="col">
-        <div class="form-'floating mb-3">
+        <div class="form-floating mb-3">
           <input type="text" name="url" id="form-url-input" class="form-control" placeholder="https://www.example.com/downloads" required>
           <label for="form-url-input">Masukkan URL</label>
         </div>
@@ -17,7 +17,7 @@
             <svg class="icon me-2">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-paper-plane') }}"></use>
             </svg>
-            Download
+            Check
           </button>
         </div>
       </div>
