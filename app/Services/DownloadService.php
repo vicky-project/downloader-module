@@ -10,6 +10,7 @@ use Modules\Downloader\Enums\DownloadStatus;
 use Modules\Downloader\Enums\UrlType;
 use Modules\Downloader\Jobs\ProcessFileDownload;
 use Modules\Downloader\Services\UrlResolverService;
+use Modules\Downloader\Contracts\DownloadHandlerInterface;
 
 class DownloadService
 {
