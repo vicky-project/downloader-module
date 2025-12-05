@@ -17,7 +17,7 @@ class MenuProvider implements MenuProviderInterface
 				"name" => "Downloader",
 				"order" => 20,
 				"icon" => "cloud-download",
-				"role" => "user",
+				"role" => ["super-admin", "admin", "user"],
 				"route" => "downloader.index",
 				"permission" => Permission::VIEW_DOWNLOADERS,
 			],
