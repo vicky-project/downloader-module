@@ -2,7 +2,7 @@
 namespace Modules\Downloader\Providers;
 
 use Modules\MenuManagement\Interfaces\MenuProviderInterface;
-use Modules\Financial\Constants\Permissions;
+use Modules\Financial\Constants\Permission;
 
 class MenuProvider implements MenuProviderInterface
 {
