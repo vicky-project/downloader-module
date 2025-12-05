@@ -54,9 +54,14 @@
     const prevModal = document.getElementById('previewDownload');
     
     prevModal.addEventListener('shown.coreui.modal', function() {
-      const url = document.getElementById('form-url-input');
+      const urlInput = document.getElementById('form-url-input');
       
-      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ url).then(res => res.json()).then(data => console.log(data));
+      if(!urlInput.value) {
+        urlInput.classList.add('is-invalid');
+        return;
+      }
+      
+      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => console.log(data));
     });
   });
 </script>
