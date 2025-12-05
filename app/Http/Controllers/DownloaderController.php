@@ -4,13 +4,18 @@ namespace Modules\Downloader\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use Modules\Downloader\Constants\Permission;
+use Modules\Downloader\Constants\Permissions;
+use Modules\Downloader\Services\DownloadService;
 
 class DownloaderController extends Controller
 {
-	public function __construct()
+	protected DownloadService $downloadService;
+
+	public function __construct(DownloadService $downloadService)
 	{
-		$this->middleware(["permission:" . Permission::VIEW_DOWNLOADER])->only([
+		$this->downloadService = $downloadService;
+
+		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
 		]);
 	}
@@ -42,9 +47,13 @@ class DownloaderController extends Controller
 	/**
 	 * Show the form for creating a new resource.
 	 */
-	public function create()
+	public function previewDownload(Request $request)
 	{
-		return view("downloader::create");
+		$request->validate(["url" => "required|url|max:2000"]);
+
+		$preview = $this->downloadService->previewFile($request->url);
+
+		return response()->json(["success" => true, "data" => $preview]);
 	}
 
 	/**
