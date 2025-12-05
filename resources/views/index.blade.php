@@ -13,7 +13,7 @@
           <label for="form-url-input">Masukkan URL</label>
         </div>
         <div class="mt-4 pt-2 border-top border-primary">
-          <button type="button" class="btn btn-success" data-coreui-toggle="modal" data-coreui-target="#previewDownload">
+          <button type="button" id="check-button" class="btn btn-success" data-coreui-toggle="modal" data-coreui-target="#previewDownload">
             <svg class="icon me-2">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-paper-plane') }}"></use>
             </svg>
@@ -51,15 +51,20 @@
 @section('scripts')
 <script>
   window.addEventListener("DOMContentLoaded", function() {
-    const prevModal = document.getElementById('previewDownload');
+    
+    const checkButton = document.getElementById('check-button');
+    checkButton.addEventListener('click', function() {
+        const urlInput = document.getElementById('form-url-input');
+      
+        if(!urlInput.value) {
+          urlInput.classList.add('is-invalid');
+          return;
+        }
+        
+        new coreui.Modal('#previewDownload').show();
+    });
     
     prevModal.addEventListener('shown.coreui.modal', function() {
-      const urlInput = document.getElementById('form-url-input');
-      
-      if(!urlInput.value) {
-        urlInput.classList.add('is-invalid');
-        return;
-      }
       
       fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => console.log(data));
     });
