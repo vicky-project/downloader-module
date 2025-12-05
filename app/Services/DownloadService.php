@@ -26,7 +26,7 @@ class DownloadService
 	public function previewFile(string $url): array
 	{
 		$urlAnalysis = $this->urlResolver->resolve($url);
-		$filename = $this->getFilenameFromUrl($url, $urlAnalysis);
+		$filename = $this->getFilenameFromUrl($url, $urlAnalysis["type"]);
 
 		$fileinfo = [];
 		if ($urlAnalysis["direct_download_url"]) {
