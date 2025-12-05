@@ -2,6 +2,7 @@
 namespace Modules\Downloader\Services\Handlers;
 
 use Modules\Downloader\Enums\UrlType;
+use Modules\Downloader\Models\DownloadJob;
 
 class YouTubeHandler extends BaseDownloadHandler
 {
