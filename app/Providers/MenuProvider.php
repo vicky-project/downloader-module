@@ -19,7 +19,7 @@ class MenuProvider implements MenuProviderInterface
 				"icon" => "cloud-download",
 				"role" => "user",
 				"route" => "downloader.index",
-				"permission" => Permissions::VIEW_DOWNLOADER,
+				"permission" => Permission::VIEW_DOWNLOADER,
 			],
 		];
 	}
