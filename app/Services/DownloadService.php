@@ -356,7 +356,6 @@ class DownloadService
 	 */
 	private function hasSpecialHandler(UrlType $urlType): bool
 	{
-		dd($urlType);
 		$handlers = [
 			UrlType::GOOGLE_DRIVE => config(
 				"downloader.handlers.google_drive",
@@ -366,7 +365,7 @@ class DownloadService
 			UrlType::ONE_DRIVE => config("downloader.handlers.one_drive", false),
 		];
 
-		return $handlers[$urlType] ?? false;
+		return $handlers[$urlType->name] ?? false;
 	}
 
 	/**
