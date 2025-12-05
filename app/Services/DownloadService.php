@@ -14,10 +14,14 @@ use Modules\Downloader\Services\UrlResolverService;
 class DownloadService
 {
 	protected UrlResolverService $urlResolver;
+	protected DownloadHandlerFactory $handlerFactory;
 
-	public function __construct(UrlResolverService $urlResolver)
-	{
+	public function __construct(
+		UrlResolverService $urlResolver,
+		DownloadHandlerFactory $handlerFactory
+	) {
 		$this->urlResolver = $urlResolver;
+		$this->handlerFactory = $handlerFactory;
 	}
 
 	/**
@@ -26,23 +30,41 @@ class DownloadService
 	public function previewFile(string $url): array
 	{
 		$urlAnalysis = $this->urlResolver->resolve($url);
-		$filename = $this->getFilenameFromUrl($url, $urlAnalysis["type"]);
+		$urlType = $urlAnalysis["type"];
 
-		$fileinfo = [];
-		if ($urlAnalysis["direct_download_url"]) {
-			$fileinfo = $this->getRemoteFileInfo($urlAnalysis["direct_download_url"]);
-		} elseif ($urlAnalysis["type"] === UrlType::DIRECT_FILE) {
-			$fileinfo = $this->getRemoteFileInfo($url);
+		$handler = $this->handlerFactory->getHandlerForType($urlType);
+		$validation = $handler->validate($url);
+		if (!$validation["valid"]) {
+			throw new \Exception($validation["message"] ?? "URL validation failed");
+		}
+
+		$filename = $handler->getFilename($url);
+
+		$fileInfo = [];
+		$directUrl = $handler->getDirectDownloadUrl($url);
+		if ($directUrl) {
+			$fileInfo = $handler->getFileInfo($directUrl);
+		} elseif ($urlType === UrlType::DIRECT_FILE) {
+			$fileInfo = $handler->getFileInfo($url);
 		}
 
 		return [
 			"filename" => $filename,
-			"file_size" => $fileinfo["size"] ?? null,
-			"file_type" => $fileinfo["type"] ?? "unknown",
-			"content_type" => $fileinfo["content_type"] ?? null,
+			"file_size" => $fileInfo["size"] ?? null,
+			"file_type" => $fileInfo["type"] ?? "unknown",
+			"content_type" => $fileInfo["content_type"] ?? null,
 			"url_analysis" => $urlAnalysis,
-			"is_downloadable" => $this->isDownloadable($urlAnalysis),
-			"estimated_size" => $this->estimateFileSize($urlAnalysis),
+			"handler" => $handler->getName(),
+			"is_downloadable" => $this->isDownloadable(
+				$urlAnalysis,
+				$urlType,
+				$handler
+			),
+			"estimated_size" => $this->estimateFileSize(
+				$urlAnalysis,
+				$urlType,
+				$handler
+			),
 		];
 	}
 
@@ -51,27 +73,62 @@ class DownloadService
 	 */
 	public function startDownload(string $url, int $userId): DownloadJob
 	{
-		$filename = $this->getFilenameFromUrl($url);
+		// Analyze URL
+		$urlAnalysis = $this->urlResolver->resolve($url);
+		$urlType = $urlAnalysis["type"];
+
+		// Get appropriate handler
+		$handler = $this->handlerFactory->getHandlerForType($urlType);
+
+		// Validate with handler
+		$validation = $handler->validate($url);
+		if (!$validation["valid"]) {
+			throw new \Exception($validation["message"] ?? "URL validation failed");
+		}
+
+		// Check if URL type is supported
+		if (!$this->handlerFactory->isSupported($urlType)) {
+			throw new \Exception("URL type '{$urlType->label()}' is not supported");
+		}
+
+		// Get filename from handler
+		$filename = $handler->getFilename($url);
 		$safeFilename = $this->generateSafeFilename($filename);
 
-		// Create download job record
+		// Determine the actual download URL
+		$downloadUrl = $handler->getDirectDownloadUrl($url) ?? $url;
+
+		// Create download job record with URL metadata
 		$downloadJob = DownloadJob::create([
 			"user_id" => $userId,
 			"job_id" => Str::uuid(),
-			"url" => $url,
+			"url" => $downloadUrl,
+			"original_url" => $url,
 			"filename" => $safeFilename,
 			"original_filename" => $filename,
 			"file_type" => pathinfo($filename, PATHINFO_EXTENSION),
 			"status" => DownloadStatus::PENDING,
-			"metadata" => [
-				"user_agent" => request()->userAgent(),
-				"ip_address" => request()->ip(),
-				"started_at" => now()->toISOString(),
-			],
+			"url_type" => $urlType->value,
+			"handler" => $handler->getName(),
+			"metadata" => array_merge(
+				[
+					"user_agent" => request()->userAgent(),
+					"ip_address" => request()->ip(),
+					"started_at" => now()->toISOString(),
+					"url_analysis" => $urlAnalysis,
+					"handler_info" => [
+						"name" => $handler->getName(),
+						"priority" => $handler->getPriority(),
+					],
+				],
+				$urlAnalysis["metadata"]
+			),
 		]);
 
-		// Dispatch job to queue
-		ProcessFileDownload::dispatch($downloadJob);
+		// Dispatch job to queue with handler context
+		ProcessFileDownload::dispatch($downloadJob, $handler->getName())->onQueue(
+			$this->getQueueForUrlType($urlType)
+		);
 
 		return $downloadJob;
 	}
@@ -126,18 +183,60 @@ class DownloadService
 	 */
 	public function getUserStats(int $userId): array
 	{
+		$downloadJob = DownloadJob::where("user_id", $userId);
+
 		return [
-			"total_downloads" => DownloadJob::where("user_id", $userId)->count(),
-			"completed_downloads" => DownloadJob::where("user_id", $userId)
+			"total_downloads" => $downloadJob->count(),
+			"completed_downloads" => $downloadJob
 				->where("status", "completed")
 				->count(),
-			"active_downloads" => DownloadJob::where("user_id", $userId)
-				->whereIn("status", ["pending", "downloading"])
+			"active_downloads" => $downloadJob
+				->whereIn("status", [
+					DownloadStatus::PENDING,
+					DownloadStatus::DOWNLOADING,
+				])
 				->count(),
-			"total_download_size" => DownloadJob::where("user_id", $userId)
-				->where("status", "completed")
+			"total_download_size" => $downloadJob
+				->where("status", DownloadStatus::COMPLETED)
 				->sum("file_size"),
+			"handlers_used" => $downloadJob->select("handler")->distinct(),
+			"handlers_used" => $downloadJob
+				->select("handler")
+				->distinct()
+				->pluck("handler")
+				->toArray(),
 		];
+	}
+
+	/**
+	 * Get supported URL types
+	 */
+	public function getSupportedUrlTypes(): array
+	{
+		return $this->handlerFactory->getSupportedTypes();
+	}
+
+	/**
+	 * Check if URL is downloadable
+	 */
+	private function isDownloadable(
+		array $urlAnalysis,
+		UrlType $urlType,
+		DownloadHandlerInterface $handler
+	): bool {
+		// Check if URL type is supported
+		if (!$urlAnalysis["is_supported"]) {
+			return false;
+		}
+
+		// Check if direct download URL is available
+		if ($urlAnalysis["direct_download_url"]) {
+			return true;
+		}
+
+		// Check if handler can handle the download
+		$directUrl = $handler->getDirectDownloadUrl($urlAnalysis["url"]);
+		return $directUrl !== null || $handler->supports($urlType);
 	}
 
 	/**
@@ -329,29 +428,6 @@ class DownloadService
 	}
 
 	/**
-	 * Check if URL is downloadable
-	 */
-	private function isDownloadable(array $urlAnalysis): bool
-	{
-		// Check if URL type is supported
-		if (!$urlAnalysis["is_supported"]) {
-			return false;
-		}
-
-		// Check if direct download URL is available
-		if ($urlAnalysis["direct_download_url"]) {
-			return true;
-		}
-
-		// Check if special handling is available
-		if ($urlAnalysis["requires_special_handling"]) {
-			return $this->hasSpecialHandler($urlAnalysis["type"]);
-		}
-
-		return false;
-	}
-
-	/**
 	 * Check if special handler exists for URL type
 	 */
 	private function hasSpecialHandler(UrlType $urlType): bool
@@ -371,20 +447,34 @@ class DownloadService
 	/**
 	 * Estimate file size based on URL type
 	 */
-	private function estimateFileSize(array $urlAnalysis): ?int
-	{
+	private function estimateFileSize(
+		array $urlAnalysis,
+		UrlType $urlType,
+		DownloadHandlerInterface $handler
+	): ?int {
 		// For direct files, try to get actual size
 		if ($urlAnalysis["direct_download_url"]) {
-			$info = $this->getRemoteFileInfo($urlAnalysis["direct_download_url"]);
+			$info = $handler->getFileInfo($urlAnalysis["direct_download_url"]);
 			return $info["size"] ?? null;
 		}
 
 		// Default estimates based on URL type
-		return match ($urlAnalysis["type"]) {
+		return match ($urlType) {
 			UrlType::YOUTUBE => 50 * 1024 * 1024,
 			UrlType::GOOGLE_DRIVE => 10 * 1024 * 1024,
 			UrlType::DROPBOX => 5 * 1024 * 1024,
+			UrlType::ONE_DRIVE => 8 * 1024 * 1024,
 			default => null,
+		};
+	}
+
+	private function getQueueForUrlType(UrlType $urlType): string
+	{
+		return match ($urlType) {
+			UrlType::YOUTUBE => "youtube-downloads",
+			UrlType::GOOGLE_DRIVE => "drive-downloads",
+			UrlType::ONE_DRIVE => "onedrive-downloads",
+			default => "default",
 		};
 	}
 }
