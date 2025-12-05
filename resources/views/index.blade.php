@@ -64,6 +64,8 @@
         new coreui.Modal('#previewDownload').show();
     });
     
+    const prevModal = document.getElementById('previewDownload');
+    
     prevModal.addEventListener('shown.coreui.modal', function() {
       
       fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => console.log(data));
