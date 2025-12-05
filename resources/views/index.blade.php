@@ -13,7 +13,7 @@
           <label for="form-url-input">Masukkan URL</label>
         </div>
         <div class="mt-4 pt-2 border-top border-primary">
-          <button type="button" id="check-button" class="btn btn-success" data-coreui-toggle="modal" data-coreui-target="#previewDownload">
+          <button type="button" id="check-button" class="btn btn-success">
             <svg class="icon me-2">
               <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-paper-plane') }}"></use>
             </svg>
