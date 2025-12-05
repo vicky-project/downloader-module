@@ -2,7 +2,7 @@
 namespace Modules\Downloader\Providers;
 
 use Modules\MenuManagement\Interfaces\MenuProviderInterface;
-use Modules\Downloader\Constants\Permission;
+use Modules\Downloader\Constants\Permissions;
 
 class MenuProvider implements MenuProviderInterface
 {
@@ -19,7 +19,7 @@ class MenuProvider implements MenuProviderInterface
 				"icon" => "cloud-download",
 				"role" => ["super-admin", "admin", "user"],
 				"route" => "downloader.index",
-				"permission" => Permission::VIEW_DOWNLOADERS,
+				"permission" => Permissions::VIEW_DOWNLOADERS,
 			],
 		];
 	}

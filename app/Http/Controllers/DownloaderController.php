@@ -4,13 +4,13 @@ namespace Modules\Downloader\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use Modules\Downloader\Constants\Permission;
+use Modules\Downloader\Constants\Permissions;
 
 class DownloaderController extends Controller
 {
 	public function __construct()
 	{
-		$this->middleware(["permission:" . Permission::VIEW_DOWNLOADERS])->only([
+		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
 		]);
 	}

@@ -1,7 +1,7 @@
 <?php
 namespace Modules\Downloader\Constants;
 
-class Permission
+class Permissions
 {
 	const VIEW_DOWNLOADERS = "downloader.view";
 
