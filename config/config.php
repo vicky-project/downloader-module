@@ -1,5 +1,6 @@
 <?php
 
 return [
-    'name' => 'Downloader',
+	"name" => "Downloader",
+	"blocked_domains" => [],
 ];
