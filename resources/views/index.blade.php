@@ -51,17 +51,16 @@
 @section('scripts')
 <script>
   window.addEventListener("DOMContentLoaded", function() {
-    
+    const urlInput = document.getElementById('form-url-input');
     const checkButton = document.getElementById('check-button');
+    
     checkButton.addEventListener('click', function() {
-        const urlInput = document.getElementById('form-url-input');
-      
-        if(!urlInput.value) {
-          urlInput.classList.add('is-invalid');
-          return;
-        }
+      if(!urlInput.value) {
+        urlInput.classList.add('is-invalid');
+        return;
+      }
         
-        new coreui.Modal('#previewDownload').show();
+      new coreui.Modal('#previewDownload').show();
     });
     
     const prevModal = document.getElementById('previewDownload');
