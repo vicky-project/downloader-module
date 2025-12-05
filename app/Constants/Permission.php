@@ -3,10 +3,10 @@ namespace Modules\Downloader\Constants;
 
 class Permission
 {
-	const VIEW_DOWNLOADER = "downloader.view";
+	const VIEW_DOWNLOADERS = "downloader.view";
 
 	public static function all(): array
 	{
-		return [self::VIEW_DOWNLOADER => "View Downloader"];
+		return [self::VIEW_DOWNLOADERS => "View Downloader"];
 	}
 }

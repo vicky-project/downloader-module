@@ -10,7 +10,7 @@ class DownloaderController extends Controller
 {
 	public function __construct()
 	{
-		$this->middleware(["permission:" . Permission::VIEW_DOWNLOADER])->only([
+		$this->middleware(["permission:" . Permission::VIEW_DOWNLOADERS])->only([
 			"index",
 		]);
 	}
