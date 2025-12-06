@@ -36,7 +36,7 @@
         <h5 class="modal-title" id="previewDownloadLabel">Modal title</h5>
         <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body">
+      <div class="modal-body" id="modal-body">
         <p class="fw-wight-bold">Memproses...</p>
       </div>
       <div class="modal-footer">
@@ -64,8 +64,10 @@
     });
     
     const prevModal = document.getElementById('previewDownload');
+    const modalBody = document.getElementById('modal-body');
     
     prevModal.addEventListener('shown.coreui.modal', function() {
+      modalBody.innerHTML = '<p class="fw-wight-bold">Processing...</p>';
       
       fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => {
         let contentModal = '';
@@ -87,6 +89,8 @@
             </div>
           </div>`;
         }
+        
+        modalBody.innerHTML = contentModal;
       });
     });
   });
