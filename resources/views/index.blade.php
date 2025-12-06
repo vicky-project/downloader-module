@@ -3,6 +3,72 @@
 @section('page-title', 'Downloader')
 
 @section('content')
+<div class="row mb-2 g-4">
+  <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+    <div class="card">
+      <div class="card-body p-3 d-flex align-items-center">
+        <div class="bg-primary text-white p-3 me-3">
+          <svg class="icon icon-xl">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-cloud-download') }}"></use>
+          </svg>
+        </div>
+        <div>
+          <div class="fs-6 fw-semibold text-primary">{{ $userStats["total_downloads"] }}</div>
+          <div class="text-body-secondary text-uppercase fw-semibold small">Downloads</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col-->
+  <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+    <div class="card">
+      <div class="card-body p-3 d-flex align-items-center">
+        <div class="bg-info text-white p-3 me-3">
+          <svg class="icon icon-xl">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-check') }}"></use>
+          </svg>
+        </div>
+        <div>
+          <div class="fs-6 fw-semibold text-info">{{ $userStats["completed_downloads"] }}</div>
+          <div class="text-body-secondary text-uppercase fw-semibold small">Completed</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col-->
+  <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+    <div class="card">
+      <div class="card-body p-3 d-flex align-items-center">
+        <div class="bg-warning text-white p-3 me-3">
+          <svg class="icon icon-xl">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-sync-alt') }}"></use>
+          </svg>
+        </div>
+        <div>
+          <div class="fs-6 fw-semibold text-warning">{{ $userStats["active_downloads"] }}</div>
+          <div class="text-body-secondary text-uppercase fw-semibold small">Active</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col-->
+  <div class="col-12 col-sm-6 col-xl-4 col-xxl-3">
+    <div class="card">
+      <div class="card-body p-3 d-flex align-items-center">
+        <div class="bg-danger text-white p-3 me-3">
+          <svg class="icon icon-xl">
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-storage') }}"></use>
+          </svg>
+        </div>
+        <div>
+          <div class="fs-6 fw-semibold text-danger">{{ $userStats["total_download_size"] }}</div>
+          <div class="text-body-secondary text-uppercase fw-semibold small">Total Size</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col-->
+</div>
 <div class="card">
   <div class="card-header"><strong>Downloader</strong></div>
   <div class="card-body">
