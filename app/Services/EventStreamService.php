@@ -165,7 +165,7 @@ class EventStreamService
 	/**
 	 * Send SSE event
 	 */
-	private function sendEvent(string $event, array $data): void
+	private function sendEvent(string $event, array $data): StreamedEvent
 	{
 		return new StreamedEvent(event: $svent, data: json_encode($data));
 	}
