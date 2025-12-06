@@ -37,7 +37,7 @@
         <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        ...
+        <p class="fw-wight-bold">Memproses...</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
@@ -67,7 +67,27 @@
     
     prevModal.addEventListener('shown.coreui.modal', function() {
       
-      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => console.log(data));
+      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => {
+        let contentModal = '';
+        if(!data.success) {
+          contentModal = "Gagal mendapatkan informasi file";
+        } else {
+          contentModal = `<div class="row">
+            <div class="col">
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <strong>Filename</strong>
+                  <span class="text-muted">${data.data.filename}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <strong>Size</strong>
+                  <span class="text-muted">${data.data.file_size}</span>
+                </li>
+              </ul>
+            </div>
+          </div>`;
+        }
+      });
     });
   });
 </script>

@@ -141,7 +141,7 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 	{
 		$path = parse_url($url, PHP_URL_PATH);
 		$filename = basename($path);
-		logger()->debug("filename {$filename}. Path {$path}");
+		logger()->debug("filename: {$filename}. Path: {$path}");
 
 		return $filename ?: "downloaded_file_" . time();
 	}
