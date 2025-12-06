@@ -27,6 +27,7 @@ return new class extends Migration {
 			$table->string("status")->default("pending"); // pending, downloading, completed, failed
 			$table->text("error_message")->nullable();
 			$table->string("local_path")->nullable();
+			$table->string("handler")->nullable();
 			$table->json("metadata")->nullable();
 			$table->timestamps();
 		});
