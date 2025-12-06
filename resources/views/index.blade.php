@@ -37,7 +37,9 @@
         <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modal-body">
-        <p class="fw-wight-bold">Memproses...</p>
+        <div class="container-fluid">
+          <p class="fw-wight-bold">Memproses...</p>
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
@@ -75,17 +77,48 @@
           contentModal = "Gagal mendapatkan informasi file";
         } else {
           contentModal = `<div class="row">
+            <div class="col-md-4">
+              <strong>Filename</strong>
+            </div>
+            <div class="col-md-4 ms-auto">
+              <span class="text-muted">${data.data.filename}</span>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-4">
+              <strong>Size</strong>
+            </div>
+            <div class="col-md-4 ms-auto">
+              <span class="text-muted">${data.data.file_size}</span>
+            </div>
+          </div>
+          <div class="row">
             <div class="col">
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <strong>Filename</strong>
-                  <span class="text-muted">${data.data.filename}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <strong>Size</strong>
-                  <span class="text-muted">${data.data.file_size}</span>
-                </li>
-              </ul>
+              <strong>Metadata</strong>
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>URL</strong>
+                </div>
+                <div class="col-md-4 ms-auto">
+                  <span class="text-muted">${data.data.url_analysis?.url}</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>Type</strong>
+                </div>
+                <div class="col-md-4 ms-auto">
+                  <span class="text-muted">${data.data.url_analysis?.type_label}</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">
+                  <strong>Downloadable</strong>
+                </div>
+                <div class="col-md-4 ms-auto">
+                  <span class="text-muted">${data.data.is_downloadable}</span>
+                </div>
+              </div>
             </div>
           </div>`;
         }
