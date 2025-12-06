@@ -94,7 +94,7 @@
           <div class="row">
             <div class="col">
               <strong>Metadata</strong>
-              <div class="row">
+              <div class="row mt-4 pt-2 border-top border-primary">
                 <div class="col-md-4">
                   <strong>URL</strong>
                 </div>
@@ -115,7 +115,7 @@
                   <strong>Downloadable</strong>
                 </div>
                 <div class="col-md-4 ms-auto">
-                  <span class="text-muted">${data.data.is_downloadable}</span>
+                  <span class="badge badge-${data.data.is_downloadable ? 'success' : 'danger'} text-muted">${data.data.is_downloadable ? 'No' : 'No'}</span>
                 </div>
               </div>
             </div>

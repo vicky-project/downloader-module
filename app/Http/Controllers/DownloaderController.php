@@ -38,9 +38,11 @@ class DownloaderController extends Controller
 				->get()
 			: collect();
 
+		$userStats = $this->downloadService->getUserStats($user->id);
+
 		return view(
 			"downloader::index",
-			compact("activeDownloads", "completedDownloads")
+			compact("activeDownloads", "completedDownloads", "userStats")
 		);
 	}
 
