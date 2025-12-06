@@ -33,7 +33,7 @@
   <div class="modal-dialog modal-fullscreen">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="previewDownloadLabel">Modal title</h5>
+        <h5 class="modal-title" id="previewDownloadLabel">Preview</h5>
         <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body" id="modal-body">
@@ -43,7 +43,6 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary">Download</button>
       </div>
     </div>
   </div>
@@ -111,7 +110,7 @@
                   <span class="text-muted">${data.data.url_analysis?.type_label}</span>
                 </div>
               </div>
-              <div class="row">
+              <div class="row mt-2">
                 <div class="col-md-4">
                   <strong>Downloadable</strong>
                 </div>
