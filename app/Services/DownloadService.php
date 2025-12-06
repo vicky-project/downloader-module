@@ -200,7 +200,7 @@ class DownloadService
 			"total_download_size" => $downloadJob
 				->where("status", DownloadStatus::COMPLETED)
 				->sum("file_size"),
-			"handlers_used" => $downloadJob->select("handler")->distinct(),
+			// 			"handlers_used" => $downloadJob->select("handler")->distinct(),
 			"handlers_used" => $downloadJob
 				->select("handler")
 				->distinct()

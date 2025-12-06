@@ -115,7 +115,7 @@
                   <strong>Downloadable</strong>
                 </div>
                 <div class="col-md-4 ms-auto">
-                  <span class="badge badge-${data.data.is_downloadable ? 'success' : 'danger'} text-muted">${data.data.is_downloadable ? 'No' : 'No'}</span>
+                  <span class="badge badge-${data.data.is_downloadable ? 'success' : 'danger'} text-muted">${data.data.is_downloadable ? 'Yes' : 'No'}</span>
                 </div>
               </div>
             </div>
