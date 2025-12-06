@@ -45,8 +45,10 @@ class YouTubeHandler extends BaseDownloadHandler
 		return null;
 	}
 
-	public function download(DownloadJob $downloadJob): void
-	{
+	public function download(
+		DownloadJob $downloadJob,
+		?callable $progressCallback = null
+	): void {
 		// YouTube requires external tools like youtube-dl or yt-dlp
 		// This is a simplified implementation
 		$videoId = $this->extractVideoId($downloadJob->url);

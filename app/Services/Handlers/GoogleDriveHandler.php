@@ -51,8 +51,10 @@ class GoogleDriveHandler extends BaseDownloadHandler
 		return "https://drive.google.com/uc?export=download&id=" . $fileId;
 	}
 
-	public function download(DownloadJob $downloadJob): void
-	{
+	public function download(
+		DownloadJob $downloadJob,
+		?callable $progressCallback = null
+	): void {
 		$fileId = $this->extractFileId($downloadJob->url);
 		if (!$fileId) {
 			throw new \Exception("Invalid Google Drive URL");
@@ -68,7 +70,7 @@ class GoogleDriveHandler extends BaseDownloadHandler
 		}
 
 		// Use parent download with direct URL
-		parent::download($downloadJob);
+		parent::download($downloadJob, $progressCallback);
 	}
 
 	private function extractFileId(string $url): ?string
