@@ -93,7 +93,9 @@
           </div>
           <div class="row">
             <div class="col">
-              <strong class="my-4 pb-2 border-bottom border-primary">Metadata</strong>
+              <div class="row mb-4 pb-2 border-bottom border-primary">
+                <strong>Metadata</strong>
+              </div>
               <div class="row">
                 <div class="col-md-4">
                   <strong>URL</strong>
