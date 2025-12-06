@@ -4,16 +4,23 @@ namespace Modules\Downloader\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Constants\Permissions;
 use Modules\Downloader\Services\DownloadService;
+use Modules\Downloader\Services\EventStreamService;
 
 class DownloaderController extends Controller
 {
 	protected DownloadService $downloadService;
+	protected EventStreamService $eventStreamService;
 
-	public function __construct(DownloadService $downloadService)
-	{
+	public function __construct(
+		DownloadService $downloadService,
+		EventStreamService $eventStreamService
+	) {
 		$this->downloadService = $downloadService;
+		$this->eventStreamService = $eventStreamService;
 
 		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
@@ -47,7 +54,7 @@ class DownloaderController extends Controller
 	}
 
 	/**
-	 * Show the form for creating a new resource.
+	 * Show the preview for downloading a file.
 	 */
 	public function previewDownload(Request $request)
 	{
@@ -59,26 +66,57 @@ class DownloaderController extends Controller
 	}
 
 	/**
-	 * Store a newly created resource in storage.
+	 * Start download process.
 	 */
-	public function store(Request $request)
+	public function startDownload(Request $request)
 	{
+		try {
+			$downloadJob = $this->downloadService->startDownload(
+				$request->url,
+				\Auth::id()
+			);
+
+			return $request->wantsJson()
+				? response()->json([
+					"success" => true,
+					"job_id" => $downloadJob->job_id,
+					"message" => "Download started in background",
+				])
+				: back()->with("success", "Download started in background.");
+		} catch (\Exception $e) {
+			return $request->wantsJson()
+				? response()->json(
+					[
+						"success" => false,
+						"message" => "Failed to start download: " . $e->getMessage(),
+					],
+					500
+				)
+				: back()->withErrors("Failed to start download: " . $e->getMessage());
+		}
 	}
 
 	/**
-	 * Show the specified resource.
+	 * Event stream for active download.
 	 */
-	public function show($id)
+	public function stream(Request $request)
 	{
-		return view("downloader::show");
+		if (!\Auth::check()) {
+			return response()->json(["error" => "Unauthorized"], 401);
+		}
+
+		return $this->eventStreamService->streamActiveDownloads(\Auth::id());
 	}
 
 	/**
 	 * Show the form for editing the specified resource.
 	 */
-	public function edit($id)
+	public function file($job_id)
 	{
-		return view("downloader::edit");
+		$file = DownloadJob::where("job_id", $job_id)->first();
+		$storage = Storage::disk("local");
+
+		return $storage->response($storage->path($file->local_path));
 	}
 
 	/**

@@ -11,5 +11,14 @@ Route::prefix("v1")->group(function () {
 				DownloaderController::class,
 				"previewDownload",
 			])->name("preview");
+			Route::get("download", [
+				DownloaderController::class,
+				"startDownload",
+			])->name("download");
+
+			Route::get("stream", [DownloaderController::class, ""])->name("stream");
+			Route::get("file/{job_id}", [DownloaderController::class, "file"])->name(
+				"file"
+			);
 		});
 });

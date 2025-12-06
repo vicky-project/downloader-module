@@ -41,7 +41,7 @@
       <div class="card-body p-3 d-flex align-items-center">
         <div class="bg-warning text-white p-3 me-3">
           <svg class="icon icon-xl">
-            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-sync-alt') }}"></use>
+            <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-sync') }}"></use>
           </svg>
         </div>
         <div>
@@ -88,8 +88,18 @@
         </div>
       </div>
     </div>
-    <div class="row mb-2">
-      <div class="col"></div>
+    <div class="row mt-2">
+      <div class="col">
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover">
+            <thead>
+              <th>Filename</th>
+              <th>Progress</th>
+            </thead>
+            <tbody id="tbody-download"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -115,8 +125,23 @@
 </div>
 @endsection
 
+@include('downloader::partials.event-stream')
+
 @section('scripts')
 <script>
+  let prevModal;
+  
+  function download(url){
+    if(!url) return;
+    
+    fetch('{{ env("APP_URL") }}/api/v1/downloaders/download?url='+ url).then(res => res.json()).then(data => {
+      if(!data.success) {
+        return alert(data.message);
+      } else {
+      }
+    });
+  }
+  
   window.addEventListener("DOMContentLoaded", function() {
     const urlInput = document.getElementById('form-url-input');
     const checkButton = document.getElementById('check-button');
@@ -130,7 +155,7 @@
       new coreui.Modal('#previewDownload').show();
     });
     
-    const prevModal = document.getElementById('previewDownload');
+    prevModal = document.getElementById('previewDownload');
     const modalBody = document.getElementById('modal-body');
     
     prevModal.addEventListener('shown.coreui.modal', function() {
@@ -188,6 +213,10 @@
               </div>
             </div>
           </div>`;
+          
+          const downloadButton = `<button type="button" class="btn btn-primary" onclick="download('${data.data.url_analysis.url}')">Download</button>`;
+          
+          document.querySelector('modal-footer').insertAdjacentHTML('beforeend', downloadButton);
         }
         
         modalBody.innerHTML = contentModal;

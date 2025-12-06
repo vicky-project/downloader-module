@@ -74,18 +74,27 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 	/**
 	 * Default download implementation
 	 */
-	public function download(DownloadJob $downloadJob): void
-	{
+	public function download(
+		DownloadJob $downloadJob,
+		?callable $progressCallback = null
+	): void {
 		$url = $this->getDirectDownloadUrl($downloadJob->url) ?? $downloadJob->url;
 
 		$response = Http::timeout(300)
 			->withOptions([
-				"progress" => function ($downloadTotal, $downloadedBytes) use (
-					$downloadJob
-				) {
+				"progress" => function (
+					$downloadTotal,
+					$downloadedBytes,
+					$uploadTotal,
+					$uploadedBytes
+				) use ($downloadJob, $progressCallback) {
 					if ($downloadTotal > 0) {
 						$progress = ($downloadedBytes / $downloadTotal) * 100;
 						$downloadJob->update(["progress" => $progress]);
+
+						if ($progressCallback) {
+							$progressCallback($progress, $downloadedBytes, $downloadTotal);
+						}
 					}
 				},
 				"headers" => $this->getDefaultHeaders(),
