@@ -102,7 +102,7 @@ class EventStreamService
 	 */
 	private function sendEvent(string $event, array $data): StreamedEvent
 	{
-		return new StreamedEvent(event: $svent, data: json_encode($data));
+		return new StreamedEvent(event: $event, data: json_encode($data));
 	}
 
 	/**
