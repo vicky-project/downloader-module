@@ -114,6 +114,7 @@
       </div>
       <form method="POST" action="{{ route('api.downloader.download') }}">
         @csrf
+        <input type="hidden" name="url" value="" id="download-url">
       <div class="modal-body" id="modal-body">
         <div class="container-fluid">
           <p class="fw-wight-bold">Memproses...</p>
@@ -209,8 +210,9 @@
                 </div>
               </div>
             </div>
-          </div>
-          <input type="hidden" name"url" value="${urlInput.value}">`;
+          </div>`;
+          
+          document.getElementById('download-url').value = urlInput.value;
           
           const downloadButton = `<button type="submit" class="btn btn-primary">Download</button>`;
           
