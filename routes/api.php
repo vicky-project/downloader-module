@@ -11,9 +11,6 @@ Route::prefix("v1")->group(function () {
 				DownloaderController::class,
 				"previewDownload",
 			])->name("preview");
-			Route::post("download", [DownloaderController::class, "startDownload"])
-				->name("download")
-				->middleware("auth");
 
 			Route::get("active", [
 				DownloaderController::class,

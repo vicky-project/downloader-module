@@ -9,6 +9,10 @@ Route::middleware(["auth"])->group(function () {
 			->name("downloader.")
 			->group(function () {
 				Route::get("/", [DownloaderController::class, "index"])->name("index");
+				Route::post("download", [
+					DownloaderController::class,
+					"startDownload",
+				])->name("download");
 			});
 	});
 });
