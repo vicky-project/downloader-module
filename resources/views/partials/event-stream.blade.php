@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function fetchActiveDownloads() {
     try {
-        const response = await fetch("{{ route('download.active') }}");
+        const response = await fetch("{{ route('api.downloader.active') }}");
         const result = await response.json();
         
         if (result.success) {
@@ -334,7 +334,7 @@ async function fetchActiveDownloads() {
                 
                 // Connect to individual stream for better updates
                 if (download.status === 'downloading' || download.status === 'pending') {
-                    window.downloadEventStream.connectSingle(download.job_id);
+                    //window.downloadEventStream.connectSingle(download.job_id);
                 }
             });
         }

@@ -20,5 +20,9 @@ Route::prefix("v1")->group(function () {
 			Route::get("file/{job_id}", [DownloaderController::class, "file"])->name(
 				"file"
 			);
+			Route::get("active", [
+				DownloaderController::class,
+				"getActiveDownloads",
+			])->name("active");
 		});
 });

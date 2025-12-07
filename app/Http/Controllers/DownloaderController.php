@@ -122,8 +122,28 @@ class DownloaderController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function update(Request $request, $id)
+	public function getActiveDownloads()
 	{
+		$user = \Auth::user();
+
+		$activeDownloads = method_exists($user, "activeDownloads")
+			? $user->activeDownloads()->get()
+			: collect();
+
+		return response()->json([
+			"success" => true,
+			"data" => $activeDownloads->map(function ($download) {
+				return [
+					"job_id" => $download->job_id,
+					"status" => $download->status,
+					"progress" => $download->progress,
+					"filename" => $download->original_filename,
+					"file_size" => $download->file_size,
+					"started_at" => $download->created_at->toISOString(),
+					"updated_at" => $download->updated_at->toISOString(),
+				];
+			}),
+		]);
 	}
 
 	/**
