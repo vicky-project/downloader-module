@@ -30,8 +30,9 @@ class DownloaderController extends Controller
 	/**
 	 * Display a listing of the resource.
 	 */
-	public function index()
+	public function index(Request $request)
 	{
+		dd($request->session());
 		$user = \Auth::user();
 
 		$activeDownloads = method_exists($user, "activeDownloads")
