@@ -125,6 +125,7 @@ class DownloaderController extends Controller
 	public function getActiveDownloads()
 	{
 		$user = \Auth::user();
+		dd($user);
 
 		$activeDownloads = method_exists($user, "activeDownloads")
 			? $user->activeDownloads()->get()
