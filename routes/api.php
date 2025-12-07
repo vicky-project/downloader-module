@@ -3,31 +3,28 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Downloader\Http\Controllers\DownloaderController;
 
-Route::prefix("v1")
-	->middleware(["auth"])
-	->group(function () {
-		Route::prefix("downloaders")
-			->name("downloader.")
-			->group(function () {
-				Route::get("preview", [
-					DownloaderController::class,
-					"previewDownload",
-				])->name("preview");
-				Route::get("download", [
-					DownloaderController::class,
-					"startDownload",
-				])->name("download");
+Route::prefix("v1")->group(function () {
+	Route::prefix("downloaders")
+		->name("downloader.")
+		->group(function () {
+			Route::get("preview", [
+				DownloaderController::class,
+				"previewDownload",
+			])->name("preview");
+			Route::get("download", [
+				DownloaderController::class,
+				"startDownload",
+			])->name("download");
 
-				Route::get("stream", [DownloaderController::class, "stream"])->name(
-					"stream"
-				);
-				Route::get("file/{job_id}", [
-					DownloaderController::class,
-					"file",
-				])->name("file");
-				Route::get("active", [
-					DownloaderController::class,
-					"getActiveDownloads",
-				])->name("active");
-			});
-	});
+			Route::get("stream", [DownloaderController::class, "stream"])->name(
+				"stream"
+			);
+			Route::get("active", [
+				DownloaderController::class,
+				"getActiveDownloads",
+			])->name("active");
+			Route::get("file/{job_id}", [DownloaderController::class, "file"])->name(
+				"file"
+			);
+		});
+});
