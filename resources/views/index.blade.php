@@ -132,12 +132,8 @@
   function download(url){
     if(!url) return;
     
-    fetch('{{ env("APP_URL") }}/api/v1/downloaders/download?url='+ url).then(res => res.json()).then(data => {
-      if(!data.success) {
-        return alert(data.message);
-      } else {
-      }
-    });
+    window.location = 
+    '{{env("APP_URL") }}/api/v1/downloaders/download?url='+ url;
   }
   
   window.addEventListener("DOMContentLoaded", function() {
