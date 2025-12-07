@@ -110,7 +110,7 @@ class DownloaderController extends Controller
 	 */
 	public function stream(Request $request, $job_id)
 	{
-		return $this->eventStreamService->streamActiveDownloads($job_id);
+		return $this->eventStreamService->streamActiveDownloads((int) $job_id);
 	}
 
 	/**

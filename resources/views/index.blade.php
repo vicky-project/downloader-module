@@ -93,10 +93,37 @@
         <div class="table-responsive">
           <table class="table table-bordered table-hover">
             <thead>
-              <th>Filename</th>
-              <th>Progress</th>
+              <th scope="col">Filename</th>
+              <th scope="col">Progress</th>
+              <th scope="col">Status</th>
             </thead>
-            <tbody id="tbody-download"></tbody>
+            <tbody id="tbody-download">
+              @forelse($activeDownloads as $download)
+              <tr data-job-id="{{$download->job_id}}">
+                <td>{{ $download->filename }}</td>
+                <td>
+                  <div class="progress-group">
+                    <div class="progress-group-header">
+                      <i class="cil-user progress-group-icon me-2"></i>
+                      <div>Male</div>
+                      <div class="ms-auto font-weight-bold">43%</div>
+                    </div>
+                    <div class="progress-group-bars">
+                      <div class="progress progress-thin">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 43%" aria-valuenow="43" aria-valuemin="0" aria-valuemax="100" id="job-progress-{{$download->job_id}}"></div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td id="job-status-{{$download->job_id}}">{{ $download->status }}</td>
+              </tr>
+              <script>initDownloadStream('{{$download->job_id}}')</script>
+              @empty
+              <tr>
+                <td class="text-center"><em>No active download.</em></td>
+              </tr>
+              @endforelse
+            </tbody>
           </table>
         </div>
       </div>
@@ -138,6 +165,25 @@
     
     window.location = 
     '{{env("APP_URL") }}/api/v1/downloaders/download?url='+ url;
+  }
+  
+  function initDownloadStream(jobId){
+    const eventSource = new EventSource('{{ env("APP_URL") }}/api/v1/downloaders/stream/' + jobId);
+    
+    eventSource.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      
+      updateProgressDownload(jobId, data);
+    }
+    
+    eventSource.onerror = function() {
+      console.log("Stream for job id: ${jobId} closed");
+      eventSource.close();
+    }
+  }
+  
+  function updateProgressDownload(jobId, data) {
+    const progressBar = document.getElementById('job-progress-'+ jobId);
   }
   
   window.addEventListener("DOMContentLoaded", function() {
