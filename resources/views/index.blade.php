@@ -105,12 +105,12 @@
                   <div class="progress-group">
                     <div class="progress-group-header">
                       <i class="cil-user progress-group-icon me-2"></i>
-                      <div>Male</div>
-                      <div class="ms-auto font-weight-bold">43%</div>
+                      <div id="job-progress-value-{{$download->job_id}}"></div>
+                      <div class="ms-auto font-weight-bold"id="job-progress-percentage-{{$download->job_id}}">0%</div>
                     </div>
                     <div class="progress-group-bars">
                       <div class="progress progress-thin">
-                        <div class="progress-bar bg-warning" role="progressbar" style="width: 43%" aria-valuenow="43" aria-valuemin="0" aria-valuemax="100" id="job-progress-{{$download->job_id}}"></div>
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="job-progress-{{$download->job_id}}"></div>
                       </div>
                     </div>
                   </div>
@@ -184,6 +184,8 @@
   
   function updateProgressDownload(jobId, data) {
     const progressBar = document.getElementById('job-progress-'+ jobId);
+    const jobPercentage = document.getElementById('job-progress-percentage-' + jobId);
+    const jobProgressValue = document.getElementById('job-progress-value-' + jobId):
   }
   
   window.addEventListener("DOMContentLoaded", function() {
