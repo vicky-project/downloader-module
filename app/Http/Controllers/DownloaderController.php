@@ -71,7 +71,6 @@ class DownloaderController extends Controller
 	public function startDownload(Request $request)
 	{
 		$request->validate(["url" => "required|url"]);
-		dd(\Auth::id());
 
 		try {
 			$downloadJob = $this->downloadService->startDownload(
