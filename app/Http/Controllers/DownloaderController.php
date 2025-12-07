@@ -70,6 +70,8 @@ class DownloaderController extends Controller
 	 */
 	public function startDownload(Request $request)
 	{
+		$request->validate(["url" => "required|url"]);
+
 		try {
 			$downloadJob = $this->downloadService->startDownload(
 				$request->url,
@@ -99,13 +101,9 @@ class DownloaderController extends Controller
 	/**
 	 * Event stream for active download.
 	 */
-	public function stream(Request $request)
+	public function stream(Request $request, $job_id)
 	{
-		if (!\Auth::check()) {
-			return response()->json(["error" => "Unauthorized"], 401);
-		}
-
-		return $this->eventStreamService->streamActiveDownloads(\Auth::id());
+		return $this->eventStreamService->streamActiveDownloads($job_id);
 	}
 
 	/**

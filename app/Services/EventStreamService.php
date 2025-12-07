@@ -11,12 +11,12 @@ class EventStreamService
 	/**
 	 * Generate EventStream response for active downloads
 	 */
-	public function streamActiveDownloads(int $userId)
+	public function streamActiveDownloads(int $jobId)
 	{
 		return response()->eventStream(
-			function () use ($userId) {
-				$maxExecutionTime = config("downloader.event_stream.timeout", 1800); // 30 minutes
-				$startTime = time();
+			function () use ($jobId) {
+				$lastProgress = null;
+				$lastStatus = null;
 
 				// Send initial connection event
 				yield $this->sendEvent("connected", [
@@ -24,125 +24,60 @@ class EventStreamService
 					"message" => "EventStream connected",
 				]);
 
-				// Track processed jobs to avoid duplicate events
-				$processedJobs = [];
-
-				while (true) {
-					// Check if connection is still alive
+				for ($i = 0; $i < 1800; $i++) {
 					if (connection_aborted()) {
 						break;
 					}
 
-					// Check execution time limit
-					if (time() - $startTime > $maxExecutionTime) {
-						yield $this->sendEvent("timeout", [
-							"message" => "Connection timeout, please reconnect",
+					$download = DownloadJob::where("job_id", $jobId)->first();
+
+					if (!$download) {
+						// No active downloads, send keep-alive and continue
+						yield $this->sendEvent("not-found", [
+							"message" => "Job not found",
 						]);
 						break;
 					}
 
-					// Get active downloads for user
-					$activeDownloads = DownloadJob::where("user_id", $userId)
-						->whereIn("status", [
-							DownloadStatus::PENDING,
-							DownloadStatus::DOWNLOADING,
-						])
-						->orderBy("updated_at", "desc")
-						->get();
+					if (
+						$download->progress !== $lastProgress ||
+						$download->status !== $lastStatus
+					) {
+						$eventData = [
+							"job_id" => $jobId,
+							"status" => $download->status,
+							"progress" => $download->progress,
+							"filename" => $download->original_filename,
+							"file_size" => $download->file_size,
+							"speed" => $this->calculateDownloadSpeed($download),
+							"eta" => $this->calculateETA($download),
+							"updated_at" => $download->updated_at->toISOString(),
+						];
 
-					if ($activeDownloads->isEmpty()) {
-						// No active downloads, send keep-alive and continue
-						yield $this->sendEvent("keep-alive", [
-							"timestamp" => now()->toISOString(),
-							"message" => "No active downloads",
-						]);
-					} else {
-						// Process each download
-						foreach ($activeDownloads as $download) {
-							$jobId = $download->job_id;
-
-							// Check if we need to send update for this job
-							if ($this->shouldSendUpdate($download, $processedJobs)) {
-								yield $this->sendEvent("progress", [
-									"job_id" => $jobId,
-									"status" => $download->status,
-									"progress" => $download->progress,
-									"filename" => $download->original_filename,
-									"file_size" => $download->file_size,
-									"speed" => $this->calculateDownloadSpeed($download),
-									"eta" => $this->calculateETA($download),
-									"updated_at" => $download->updated_at->toISOString(),
-								]);
-
-								// Mark as processed with current progress
-								$processedJobs[$jobId] = [
-									"progress" => $download->progress,
-									"status" => $download->status,
-									"timestamp" => now()->timestamp,
-								];
-							}
+						if ($download->status === DownloadStatus::COMPLETED) {
+							$eventData["download_url"] = route("api.downloader.file", [
+								"job_id" => $download->job_id,
+							]);
+							yield $this->sendEvent("completed", $eventData);
+							break;
+						} else {
+							yield $this->sendEvent("progress", $eventData);
 						}
 
-						// Check if any completed downloads
-						$completedDownloads = $activeDownloads->where(
-							"status",
-							DownloadStatus::COMPLETED
-						);
-						foreach ($completedDownloads as $download) {
-							if (
-								!isset($processedJobs[$download->job_id]) ||
-								$processedJobs[$download->job_id]["status"] !==
-									DownloadStatus::COMPLETED
-							) {
-								yield $this->sendEvent("completed", [
-									"job_id" => $download->job_id,
-									"filename" => $download->original_filename,
-									"file_size" => $download->file_size,
-									"download_url" => route("api.downloader.file", [
-										"job_id" => $download->job_id,
-									]),
-									"completed_at" => $download->updated_at->toISOString(),
-								]);
+						$lastProgress = $download->progress;
+						$lastStatus = $download->status;
 
-								$processedJobs[$download->job_id] = [
-									"status" => DownloadStatus::COMPLETED,
-									"timestamp" => now()->timestamp,
-								];
-							}
-						}
-
-						// Check for failed downloads
-						$failedDownloads = $activeDownloads->where(
-							"status",
-							DownloadStatus::FAILED
-						);
-						foreach ($failedDownloads as $download) {
-							if (
-								!isset($processedJobs[$download->job_id]) ||
-								$processedJobs[$download->job_id]["status"] !==
-									DownloadStatus::FAILED
-							) {
-								yield $this->sendEvent("failed", [
-									"job_id" => $download->job_id,
-									"filename" => $download->original_filename,
-									"error_message" => $download->error_message,
-									"failed_at" => $download->updated_at->toISOString(),
-								]);
-
-								$processedJobs[$download->job_id] = [
-									"status" => DownloadStatus::FAILED,
-									"timestamp" => now()->timestamp,
-								];
-							}
+						if (
+							in_array($download->status, [
+								DownloadStatus::FAILED,
+								DownloadStatus::CANCELLED,
+							])
+						) {
+							break;
 						}
 					}
 
-					// Clean up old processed jobs (older than 1 hour)
-					$this->cleanupProcessedJobs($processedJobs);
-
-					// Sleep before next check
-					$sleepTime = $activeDownloads->isEmpty() ? 5 : 1; // 5s if no active, 1s if active
-					sleep($sleepTime);
+					sleep(1);
 				}
 
 				// Send disconnect event
@@ -156,9 +91,8 @@ class EventStreamService
 				"Cache-Control" => "no-cache",
 				"Connection" => "keep-alive",
 				"X-Accel-Buffering" => "no", // Disable nginx buffering
-				"Access-Control-Allow-Origin" => env("APP_URL"),
+				"Access-Control-Allow-Origin" => "*",
 				"Access-Control-Allow-Headers" => "Cache-Control",
-				"Access-Control-Allow-Credentials" => true,
 			]
 		);
 	}
