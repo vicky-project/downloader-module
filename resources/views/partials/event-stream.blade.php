@@ -51,7 +51,7 @@ class DownloadEventStream {
     });
     
     this.eventSource.onerror = (event) => {
-      console.error('EventStream error:', event);
+      console.error('EventStream error:', JSON.stringify(event));
       this.handleDisconnection();
     };
   }
