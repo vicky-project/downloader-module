@@ -11,7 +11,7 @@ Route::prefix("v1")->group(function () {
 				DownloaderController::class,
 				"previewDownload",
 			])->name("preview");
-			Route::get("download", [
+			Route::post("download", [
 				DownloaderController::class,
 				"startDownload",
 			])->name("download");
