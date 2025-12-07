@@ -16,7 +16,9 @@ Route::prefix("v1")->group(function () {
 				"startDownload",
 			])->name("download");
 
-			Route::get("stream", [DownloaderController::class, ""])->name("stream");
+			Route::get("stream", [DownloaderController::class, "stream"])->name(
+				"stream"
+			);
 			Route::get("file/{job_id}", [DownloaderController::class, "file"])->name(
 				"file"
 			);
