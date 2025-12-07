@@ -112,6 +112,8 @@
         <h5 class="modal-title" id="previewDownloadLabel">Preview</h5>
         <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
       </div>
+      <form method="POST" action="{{ route('api.downloader.download') }}" id="form-download">
+        @csrf
       <div class="modal-body" id="modal-body">
         <div class="container-fluid">
           <p class="fw-wight-bold">Memproses...</p>
@@ -120,6 +122,7 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
       </div>
+      </form>
     </div>
   </div>
 </div>
@@ -206,9 +209,10 @@
                 </div>
               </div>
             </div>
-          </div>`;
+          </div>
+          <input type="hidden" name"url" value="${data.data.url_analysis.url}">`;
           
-          const downloadButton = `<button type="button" class="btn btn-primary" onclick="download('${data.data.url_analysis.url}')">Download</button>`;
+          const downloadButton = `<button type="submit" class="btn btn-primary">Download</button>`;
           
           document.querySelector('.modal-footer').insertAdjacentHTML('beforeend', downloadButton);
         }
