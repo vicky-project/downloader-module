@@ -210,7 +210,7 @@
               </div>
             </div>
           </div>
-          <input type="hidden" name"url" value="${data.data.url_analysis.url}">`;
+          <input type="hidden" name"url" value="${urlInput.value}">`;
           
           const downloadButton = `<button type="submit" class="btn btn-primary">Download</button>`;
           
