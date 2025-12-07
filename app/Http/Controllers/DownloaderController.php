@@ -70,7 +70,6 @@ class DownloaderController extends Controller
 	 */
 	public function startDownload(Request $request)
 	{
-		dd($request->all());
 		$request->validate(["url" => "required|url"]);
 
 		try {
