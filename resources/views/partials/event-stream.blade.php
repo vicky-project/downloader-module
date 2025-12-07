@@ -324,7 +324,14 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function fetchActiveDownloads() {
     try {
-        const response = await fetch("{{ route('api.downloader.active') }}");
+        const response = await fetch("{{ route('api.downloader.active') }}", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+          }
+        });
         const result = await response.json();
         
         if (result.success) {

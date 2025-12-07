@@ -156,8 +156,9 @@ class EventStreamService
 				"Cache-Control" => "no-cache",
 				"Connection" => "keep-alive",
 				"X-Accel-Buffering" => "no", // Disable nginx buffering
-				"Access-Control-Allow-Origin" => "*",
+				"Access-Control-Allow-Origin" => env("APP_URL"),
 				"Access-Control-Allow-Headers" => "Cache-Control",
+				"Access-Control-Allow-Credentials" => true,
 			]
 		);
 	}
