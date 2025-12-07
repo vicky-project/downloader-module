@@ -16,7 +16,7 @@ class DownloadEventStream {
       this.disconnect();
     }
     
-    const eventStreamUrl = "{{ route('api.downloader.stream') }}";
+    const eventStreamUrl = "{{ secure_url(env('APP_URL').'/api/V1/downloaders.stream') }}";
     
     this.eventSource = new EventSource(eventStreamUrl);
     
