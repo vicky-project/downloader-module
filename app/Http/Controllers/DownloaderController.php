@@ -78,6 +78,8 @@ class DownloaderController extends Controller
 				\Auth::id()
 			);
 
+			logger()->info("Start downloading: " . $downloadJob->job_id);
+
 			return $request->wantsJson()
 				? response()->json([
 					"success" => true,
@@ -86,6 +88,10 @@ class DownloaderController extends Controller
 				])
 				: back()->with("success", "Download started in background.");
 		} catch (\Exception $e) {
+			logger()->error("Download failed: " . $e->getMessage(), [
+				"error" => $e->getMessage(),
+				"trace" => $e->getTrace(),
+			]);
 			return $request->wantsJson()
 				? response()->json(
 					[
