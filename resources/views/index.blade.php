@@ -125,8 +125,6 @@
 </div>
 @endsection
 
-@include('downloader::partials.event-stream')
-
 @section('scripts')
 <script>
   let prevModal;
@@ -216,7 +214,7 @@
           
           const downloadButton = `<button type="button" class="btn btn-primary" onclick="download('${data.data.url_analysis.url}')">Download</button>`;
           
-          document.querySelector('modal-footer').insertAdjacentHTML('beforeend', downloadButton);
+          document.querySelector('.modal-footer').insertAdjacentHTML('beforeend', downloadButton);
         }
         
         modalBody.innerHTML = contentModal;
