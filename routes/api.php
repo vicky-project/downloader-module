@@ -16,13 +16,14 @@ Route::prefix("v1")->group(function () {
 				"startDownload",
 			])->name("download");
 
-			Route::get("stream", [DownloaderController::class, "stream"])->name(
-				"stream"
-			);
 			Route::get("active", [
 				DownloaderController::class,
 				"getActiveDownloads",
 			])->name("active");
+			Route::get("stream/{job_id}", [
+				DownloaderController::class,
+				"stream",
+			])->name("stream");
 			Route::get("file/{job_id}", [DownloaderController::class, "file"])->name(
 				"file"
 			);
