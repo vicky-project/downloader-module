@@ -32,7 +32,7 @@ class DownloaderController extends Controller
 	 */
 	public function index(Request $request)
 	{
-		dd($request->session());
+		dd($request->session()->_token);
 		$user = \Auth::user();
 
 		$activeDownloads = method_exists($user, "activeDownloads")
