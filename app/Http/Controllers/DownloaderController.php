@@ -46,6 +46,7 @@ class DownloaderController extends Controller
 			: collect();
 
 		$userStats = $this->downloadService->getUserStats($user->id);
+		dd($activeDownloads);
 
 		return view(
 			"downloader::index",
