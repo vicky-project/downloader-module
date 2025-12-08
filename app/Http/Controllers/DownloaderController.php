@@ -4,23 +4,26 @@ namespace Modules\Downloader\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Support\Number;
 use Illuminate\Support\Facades\Storage;
 use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Constants\Permissions;
+use Modules\Downloader\Services\UrlProcessor;
 use Modules\Downloader\Services\DownloadService;
-use Modules\Downloader\Services\EventStreamService;
+use Modules\Downloader\Enums\DownloadStatus;
+use Modules\Downloader\Jobs\ProcessDownloadJob;
 
 class DownloaderController extends Controller
 {
-	protected DownloadService $downloadService;
-	protected EventStreamService $eventStreamService;
+	protected UrlProcessor $processor;
+	protected DownloadService $downloader;
 
 	public function __construct(
-		DownloadService $downloadService,
-		EventStreamService $eventStreamService
+		UrlProcessor $processor,
+		DownloadService $downloader
 	) {
-		$this->downloadService = $downloadService;
-		$this->eventStreamService = $eventStreamService;
+		$this->processor = new UrlProcessor();
+		$this->downloader = new DownloadService();
 
 		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
@@ -32,37 +35,39 @@ class DownloaderController extends Controller
 	 */
 	public function index(Request $request)
 	{
-		$user = \Auth::user();
-
-		$activeDownloads = method_exists($user, "activeDownloads")
-			? $user->activeDownloads()->get()
-			: collect();
-		$completedDownloads = method_exists($user, "completedDownloads")
-			? $user
-				->completedDownloads()
-				->latest()
-				->take(10)
-				->get()
-			: collect();
-
-		$userStats = $this->downloadService->getUserStats($user->id);
-
-		return view(
-			"downloader::index",
-			compact("activeDownloads", "completedDownloads", "userStats")
-		);
+		return view("downloader::index");
 	}
 
 	/**
 	 * Show the preview for downloading a file.
 	 */
-	public function previewDownload(Request $request)
+	public function analyzeUrl(Request $request)
 	{
-		$request->validate(["url" => "required|url|max:2000"]);
+		$request->validate(["url" => "required|url"]);
 
-		$preview = $this->downloadService->previewFile($request->url);
+		$result = $this->processor->analyzeUrl($request->url);
 
-		return response()->json(["success" => true, "data" => $preview]);
+		if ($result["success"]) {
+			return response()->json([
+				"success" => true,
+				"data" => [
+					"filename" => $result["filename"],
+					"file_size" => $result["file_size"],
+					"formatted_size" => Number::fileSize($result["file_size"]),
+					"mime_type" => $result["mime_type"],
+					"extension" => $result["extension"],
+					"accepts_ranges" => $result["accepts_ranges"],
+				],
+			]);
+		}
+
+		return response()->json(
+			[
+				"success" => false,
+				"message" => $result["error"],
+			],
+			400
+		);
 	}
 
 	/**
@@ -72,13 +77,15 @@ class DownloaderController extends Controller
 	{
 		$request->validate(["url" => "required|url"]);
 
+		\Db::beginTransaction();
+
 		try {
-			$downloadJob = $this->downloadService->startDownload(
+			$downloadJob = $this->downloader->startDownload(
 				$request->url,
 				\Auth::id()
 			);
 
-			logger()->info("Start downloading: " . $downloadJob->job_id);
+			\DB::commit();
 
 			return $request->wantsJson()
 				? response()->json([
@@ -88,6 +95,7 @@ class DownloaderController extends Controller
 				])
 				: back()->with("success", "Download started in background.");
 		} catch (\Exception $e) {
+			\DB::rollBack();
 			logger()->error("Download failed: " . $e->getMessage(), [
 				"error" => $e->getMessage(),
 				"trace" => $e->getTrace(),
@@ -126,12 +134,9 @@ class DownloaderController extends Controller
 	/**
 	 * Update the specified resource in storage.
 	 */
-	public function getActiveDownloads()
+	public function getDownloads()
 	{
-		$user = \Auth::user();
-		dd($user);
-
-		$activeDownloads = method_exists($user, "activeDownloads")
+		$downloads = method_exists($user, "activeDownloads")
 			? $user->activeDownloads()->get()
 			: collect();
 

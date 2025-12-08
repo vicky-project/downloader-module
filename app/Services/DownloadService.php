@@ -4,27 +4,16 @@ namespace Modules\Downloader\Services;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Downloader\Models\DownloadJob;
-use Modules\Downloader\Enums\DownloadStatus;
+use Modules\Downloader\Models\Download;
 use Modules\Downloader\Enums\UrlType;
-use Modules\Downloader\Jobs\ProcessFileDownload;
-use Modules\Downloader\Services\UrlResolverService;
+use Modules\Downloader\Enums\DownloadStatus;
+use Modules\Downloader\Jobs\ProcessDownloadJob;
 use Modules\Downloader\Contracts\DownloadHandlerInterface;
 
 class DownloadService
 {
-	protected UrlResolverService $urlResolver;
-	protected DownloadHandlerFactory $handlerFactory;
-
-	public function __construct(
-		UrlResolverService $urlResolver,
-		DownloadHandlerFactory $handlerFactory
-	) {
-		$this->urlResolver = $urlResolver;
-		$this->handlerFactory = $handlerFactory;
-	}
-
 	/**
 	 * Preview file information from URL
 	 */
@@ -72,64 +61,20 @@ class DownloadService
 	/**
 	 * Start download process
 	 */
-	public function startDownload(string $url, int $userId): DownloadJob
+	public function startDownload(string $url, int $userId): Download
 	{
-		// Analyze URL
-		$urlAnalysis = $this->urlResolver->resolve($url);
-		$urlType = $urlAnalysis["type"];
-
-		// Get appropriate handler
-		$handler = $this->handlerFactory->getHandlerForType($urlType);
-
-		// Validate with handler
-		$validation = $handler->validate($url);
-		if (!$validation["valid"]) {
-			throw new \Exception($validation["message"] ?? "URL validation failed");
-		}
-
-		// Check if URL type is supported
-		if (!$this->handlerFactory->isSupported($urlType)) {
-			throw new \Exception("URL type '{$urlType->label()}' is not supported");
-		}
-
-		// Get filename from handler
-		$filename = $handler->getFilename($url);
-		$safeFilename = $this->generateSafeFilename($filename);
-
-		// Determine the actual download URL
-		$downloadUrl = $handler->getDirectDownloadUrl($url) ?? $url;
-
 		// Create download job record with URL metadata
-		$downloadJob = DownloadJob::create([
+		$downloadJob = Download::create([
 			"user_id" => $userId,
-			"job_id" => Str::uuid(),
-			"url" => $downloadUrl,
-			"original_url" => $url,
-			"filename" => $safeFilename,
-			"original_filename" => $filename,
-			"file_type" => pathinfo($filename, PATHINFO_EXTENSION),
+			"url" => $url,
 			"status" => DownloadStatus::PENDING,
-			"url_type" => $urlType->value,
-			"handler" => $handler->getName(),
-			"metadata" => array_merge(
-				[
-					"user_agent" => request()->userAgent(),
-					"ip_address" => request()->ip(),
-					"started_at" => now()->toISOString(),
-					"url_analysis" => $urlAnalysis,
-					"handler_info" => [
-						"name" => $handler->getName(),
-						"priority" => $handler->getPriority(),
-					],
-				],
-				$urlAnalysis["metadata"]
-			),
+			"connections" => config("downloader.connections", 1),
 		]);
 
+		logger()->info("Start downloading: " . $downloadJob->job_id);
+
 		// Dispatch job to queue with handler context
-		ProcessFileDownload::dispatch($downloadJob, $handler->getName())->onQueue(
-			$this->getQueueForUrlType($urlType)
-		);
+		ProcessDownloadJob::dispatch($downloadJob)->onQueue("downloads");
 
 		return $downloadJob;
 	}
@@ -137,9 +82,9 @@ class DownloadService
 	/**
 	 * Get download progress
 	 */
-	public function getDownloadProgress(string $jobId, int $userId): ?DownloadJob
+	public function getDownloadProgress(string $jobId, int $userId): ?Download
 	{
-		return DownloadJob::where("job_id", $jobId)
+		return Download::where("job_id", $jobId)
 			->where("user_id", $userId)
 			->first();
 	}
