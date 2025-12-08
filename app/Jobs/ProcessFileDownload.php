@@ -8,7 +8,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Enums\DownloadStatus;
-use Modules\Downloader\Enums\DownloadHandlerFactory;
+use Modules\Downloader\Services\DownloadHandlerFactory;
 
 class ProcessFileDownload implements ShouldQueue
 {
