@@ -126,7 +126,7 @@
               <strong>Filename</strong>
             </div>
             <div class="col-md-4 ms-auto">
-              <span class="text-muted">${data.filename}</span>
+              <span class="text-muted">${data.data.filename}</span>
             </div>
           </div>
           <div class="row">
@@ -134,7 +134,7 @@
               <strong>Size</strong>
             </div>
             <div class="col-md-4 ms-auto">
-              <span class="text-muted">${data.file_size}</span>
+              <span class="text-muted">${data.data.file_size}</span>
             </div>
           </div>
           <div class="row">
@@ -147,7 +147,7 @@
                   <strong>URL</strong>
                 </div>
                 <div class="col-md-4 ms-auto">
-                  <span class="text-muted">${data.url}</span>
+                  <span class="text-muted">${data.data.url}</span>
                 </div>
               </div>
               <div class="row">
@@ -155,7 +155,7 @@
                   <strong>Type</strong>
                 </div>
                 <div class="col-md-4 ms-auto">
-                  <span class="text-muted">${data.mime_type}</span>
+                  <span class="text-muted">${data.data.mime_type}</span>
                 </div>
               </div>
             </div>
