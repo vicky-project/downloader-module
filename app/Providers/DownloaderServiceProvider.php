@@ -7,11 +7,6 @@ use Illuminate\Support\ServiceProvider;
 use Nwidart\Modules\Traits\PathNamespace;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
-use Modules\Downloader\Services\DownloadService;
-use Modules\Downloader\Enums\UrlType;
-use Modules\Downloader\Services\UrlResolverService;
-use Modules\Downloader\Services\DownloadHandlerFactory;
-use Modules\Downloader\Contracts\DownloadHandlerInterface;
 
 class DownloaderServiceProvider extends ServiceProvider
 {
@@ -41,27 +36,6 @@ class DownloaderServiceProvider extends ServiceProvider
 	{
 		$this->app->register(EventServiceProvider::class);
 		$this->app->register(RouteServiceProvider::class);
-
-		$this->app->singleton(DownloadService::class, function ($app) {
-			return new DownloadService(
-				$app->make(UrlResolverService::class),
-				$app->make(DownloadHandlerFactory::class)
-			);
-		});
-
-		$this->app->singleton(UrlResolverService::class, function ($app) {
-			return new UrlResolverService();
-		});
-
-		$this->app->singleton(DownloadHandlerFactory::class, function ($app) {
-			return new DownloadHandlerFactory();
-		});
-
-		$this->app->bind(DownloadHandlerInterface::class, function ($app) {
-			return $app
-				->make(DownloadHandlerFactory::class)
-				->getHandlerForType(UrlType::DIRECT_FILE);
-		});
 	}
 
 	/**
