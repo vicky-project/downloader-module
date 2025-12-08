@@ -185,7 +185,7 @@
   function updateProgressDownload(jobId, data) {
     const progressBar = document.getElementById('job-progress-'+ jobId);
     const jobPercentage = document.getElementById('job-progress-percentage-' + jobId);
-    const jobProgressValue = document.getElementById('job-progress-value-' + jobId):
+    const jobProgressValue = document.getElementById('job-progress-value-' + jobId);
   }
   
   window.addEventListener("DOMContentLoaded", function() {
