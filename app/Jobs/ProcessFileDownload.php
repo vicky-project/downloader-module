@@ -85,7 +85,7 @@ class ProcessFileDownload implements ShouldQueue
 	}
 
 	private function updateJobStatus(
-		string $status,
+		DownloadStatus $status,
 		array $metadata = [],
 		?string $errorMessage = null
 	): void {
