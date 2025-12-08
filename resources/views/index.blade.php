@@ -165,7 +165,7 @@
           
           const downloadButton = `<button type="submit" class="btn btn-primary" id="btn-submit">Download</button>`;
           
-          const submitButton = document.getElementById('btn-submit'));
+          const submitButton = document.getElementById('btn-submit');
           if(submitButton) submitButton.remove();
           
           document.querySelector('.modal-footer').insertAdjacentHTML('beforeend', downloadButton);
