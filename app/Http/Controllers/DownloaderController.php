@@ -10,6 +10,7 @@ use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Constants\Permissions;
 use Modules\Downloader\Services\UrlProcessor;
 use Modules\Downloader\Services\DownloadService;
+use Modules\Downloader\Services\EventStreamService;
 use Modules\Downloader\Enums\DownloadStatus;
 use Modules\Downloader\Jobs\ProcessDownloadJob;
 
@@ -17,13 +18,13 @@ class DownloaderController extends Controller
 {
 	protected UrlProcessor $processor;
 	protected DownloadService $downloader;
+	protected EventStreamService $stream;
 
-	public function __construct(
-		UrlProcessor $processor,
-		DownloadService $downloader
-	) {
+	public function __construct()
+	{
 		$this->processor = new UrlProcessor();
 		$this->downloader = new DownloadService();
+		$this->stream = new EventStreamService();
 
 		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
@@ -118,7 +119,7 @@ class DownloaderController extends Controller
 	 */
 	public function stream(Request $request, $job_id)
 	{
-		return $this->eventStreamService->streamActiveDownloads((int) $job_id);
+		return $this->stream->streaming((int) $job_id);
 	}
 
 	/**
