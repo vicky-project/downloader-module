@@ -134,7 +134,7 @@
               <strong>Size</strong>
             </div>
             <div class="col-md-4 ms-auto">
-              <span class="text-muted">${data.data.file_size}</span>
+              <span class="text-muted">${data.data.formatted_size}</span>
             </div>
           </div>
           <div class="row">

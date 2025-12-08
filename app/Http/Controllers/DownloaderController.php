@@ -57,6 +57,7 @@ class DownloaderController extends Controller
 					"mime_type" => $result["mime_type"],
 					"extension" => $result["extension"],
 					"accepts_ranges" => $result["accepts_ranges"],
+					"url" => $result["url"],
 				],
 			]);
 		}
