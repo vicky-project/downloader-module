@@ -78,7 +78,7 @@ class DownloaderController extends Controller
 	{
 		$request->validate(["url" => "required|url"]);
 
-		\Db::beginTransaction();
+		\DB::beginTransaction();
 
 		try {
 			$downloadJob = $this->downloader->startDownload(
