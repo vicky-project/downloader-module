@@ -26,9 +26,13 @@ class EventStreamService
 							"status" => $download->status,
 							"progress" => $download->progress,
 							"downloaded_size" => $download->downloaded_size,
-							"formatted_size" => Number::fileSize($download->downloaded_size),
+							"formatted_size" => Number::fileSize(
+								$download->downloaded_size ?? 0
+							),
 							"file_size" => $download->file_size,
-							"formatted_file_size" => Number::fileSize($download->file_size),
+							"formatted_file_size" => Number::fileSize(
+								$download->file_size ?? 0
+							),
 							"download_speed" => $download->download_speed,
 							"filename" => $download->filename,
 							"updated_at" => $download->updated_at->toISOString(),
