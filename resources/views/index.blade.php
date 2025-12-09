@@ -94,20 +94,22 @@
         <div class="row mb-4 pb-2 border-bottom border-primary">
           <div class="col">
             <ul class="list-group list-group-flush">
+              @if(isset($platform["supports_chunking"]))
               <li class="list-group-item">
-                @if(isset($platform["supports_chunking"]))
                 <svg class="icon me-2 {{$platform['supports_chunking'] ? 'text-success' : 'text-danger'}}">
-                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. $platform['supports_chunking'] ? 'check-circle' : 'x-circle') }}"></use>
+                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. ($platform['supports_chunking'] ? 'check-circle' : 'x-circle')) }}"></use>
                 </svg>
                 <span>Chunked Download</span>
-                @endif
-                @if(isset($platform["supports_resume"]))
+              </li>
+              @endif
+              @if(isset($platform["supports_resume"]))
+              <li class="list-group-item">
                 <svg class="icon me-2 {{ $platform['supports_resume'] ? 'text-success' : 'text-danger' }}">
-                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. $platform['supports_resume'] ? 'check-circle' : 'x-circle') }}"></use>
+                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. ($platform['supports_resume'] ? 'check-circle' : 'x-circle')) }}"></use>
                 </svg>
                 <span>Resume Support</span>
-                @endif
               </li>
+              @endif
             </ul>
           </div>
         </div>
