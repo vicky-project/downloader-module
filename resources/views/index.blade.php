@@ -88,12 +88,6 @@
             <h4 class="fw-wight-bold">{{ $name }}</h4>
             <ul class="list-group list-group-flush">
               <li class="list-group-item">{{ $platform["description"] ?? "" }}</li>
-            </ul>
-          </div>
-        </div>
-        <div class="row mb-4 pb-2 border-bottom border-primary">
-          <div class="col">
-            <ul class="list-group list-group-flush">
               @if(isset($platform["supports_chunking"]))
               <li class="list-group-item">
                 <svg class="icon me-2 {{$platform['supports_chunking'] ? 'text-success' : 'text-danger'}}">
