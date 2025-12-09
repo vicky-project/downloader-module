@@ -85,7 +85,7 @@
         @foreach($supportedPlatforms as $name => $platform)
         <div class="row mb-4 pb-2 border-bottom border-primary">
           <div class="col">
-            <h4 class="fw-wight-bold">{{ $name }}</h4>
+            <h6 class="fw-wight-bold">{{ $name }}</h6>
             <ul class="list-group list-group-flush">
               <li class="list-group-item">
                 <p class="text-muted ms-2">
