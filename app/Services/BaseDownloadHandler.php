@@ -4,6 +4,7 @@ namespace Modules\Downloader\Services;
 
 use Illuminate\Support\Facades\Http;
 use Modules\Downloader\Contracts\DownloadHandlerInterface;
+use Generator;
 
 abstract class BaseDownloadHandler implements DownloadHandlerInterface
 {
@@ -64,11 +65,19 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 		return $filename ?: "download_" . time();
 	}
 
+	/**
+	 * Download file in chunks and yield progress
+	 *
+	 * @param string $url URL to download
+	 * @param string $savePath Path to save the file
+	 * @param int|null $start Byte position to start from (for resume)
+	 * @return Generator Yields downloaded bytes count
+	 */
 	protected function downloadChunked(
 		string $url,
 		string $savePath,
 		?int $start = null
-	): array {
+	): Generator {
 		$headers = [];
 
 		if ($start !== null) {
@@ -102,17 +111,44 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 
 		fclose($file);
 		$body->close();
+	}
 
-		return [
-			"downloaded" => $downloaded,
-			"path" => $savePath,
-		];
+	/**
+	 * Validate URL format
+	 */
+	protected function isValidUrl($url): bool
+	{
+		$pattern =
+			'/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/';
+		return preg_match($pattern, $url) && filter_var($url, FILTER_VALIDATE_URL);
+	}
+
+	/**
+	 * Get content type from URL
+	 */
+	protected function getContentTypeFromUrl($url)
+	{
+		try {
+			$ch = curl_init($url);
+			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($ch, CURLOPT_NOBODY, true);
+			curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+			curl_exec($ch);
+
+			$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+			curl_close($ch);
+
+			return $contentType;
+		} catch (\Exception $e) {
+			return null;
+		}
 	}
 
 	abstract public function handle(
 		string $url,
 		string $savePath,
 		array $options = []
-	): array;
+	): Generator;
 	abstract public function supports(string $url): bool;
 }

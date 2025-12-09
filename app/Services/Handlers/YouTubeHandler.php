@@ -3,6 +3,7 @@
 namespace Modules\Downloader\Services\Handlers;
 
 use Modules\Downloader\Services\BaseDownloadHandler;
+use Generator;
 
 class YoutubeHandler extends BaseDownloadHandler
 {
@@ -23,15 +24,34 @@ class YoutubeHandler extends BaseDownloadHandler
 		string $url,
 		string $savePath,
 		array $options = []
-	): array {
+	): Generator {
 		// Note: YouTube downloading requires yt-dlp or similar tool
-		// This is a simplified example
-		throw new \Exception(
-			"YouTube downloading requires external tools. Please install yt-dlp on server."
-		);
+		// This is a simplified example that throws an exception
 
-		// In production, you would use:
-		// $command = "yt-dlp -f 'best[ext=mp4]' -o '{$savePath}' '{$url}'";
-		// exec($command, $output, $returnCode);
+		yield [
+			"downloaded" => 0,
+			"total" => 0,
+			"progress" => 0,
+			"error" =>
+				"YouTube downloading requires external tools. Please install yt-dlp on server.",
+		];
+
+		// Uncomment and implement for production with yt-dlp
+		/*
+        $command = "yt-dlp -f 'best[ext=mp4]' -o '{$savePath}' '{$url}' 2>&1";
+        exec($command, $output, $returnCode);
+        
+        if ($returnCode === 0) {
+            $fileSize = filesize($savePath) ?: 0;
+            yield [
+                'downloaded' => $fileSize,
+                'total' => $fileSize,
+                'progress' => 100,
+                'completed' => true,
+            ];
+        } else {
+            throw new \Exception("YouTube download failed: " . implode("\n", $output));
+        }
+        */
 	}
 }

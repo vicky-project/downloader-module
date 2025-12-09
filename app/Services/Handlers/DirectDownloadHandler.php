@@ -3,6 +3,7 @@
 namespace Modules\Downloader\Services\Handlers;
 
 use Modules\Downloader\Services\BaseDownloadHandler;
+use Generator;
 
 class DirectDownloadHandler extends BaseDownloadHandler
 {
@@ -17,7 +18,7 @@ class DirectDownloadHandler extends BaseDownloadHandler
 		string $url,
 		string $savePath,
 		array $options = []
-	): array {
+	): Generator {
 		$info = $this->getInfo($url);
 		$startByte = $options["resume_from"] ?? 0;
 
@@ -34,11 +35,11 @@ class DirectDownloadHandler extends BaseDownloadHandler
 			// Calculate progress if total size is known
 			$progress = $totalSize ? ($downloaded / $totalSize) * 100 : 0;
 
-			// Only update if progress changed significantly
-			if (abs($progress - $lastProgress) >= 0.1) {
+			// Only yield if progress changed significantly
+			if (abs($progress - $lastProgress) >= 0.1 || $downloaded == $totalSize) {
 				$lastProgress = $progress;
 
-				return [
+				yield [
 					"downloaded" => $downloaded,
 					"total" => $totalSize,
 					"progress" => round($progress, 2),
@@ -46,7 +47,8 @@ class DirectDownloadHandler extends BaseDownloadHandler
 			}
 		}
 
-		return [
+		// Final yield when download is complete
+		yield [
 			"downloaded" => $downloaded,
 			"total" => $totalSize,
 			"progress" => 100,

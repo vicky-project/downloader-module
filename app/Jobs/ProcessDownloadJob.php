@@ -8,10 +8,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Downloader\Models\Download;
+use Modules\Downloader\Enums\DownloadStatus;
 use Modules\Downloader\Services\DownloadManager;
 use Modules\Downloader\Events\DownloadProgress;
-use Modules\Downloader\Enums\DownloadStatus;
 use Illuminate\Support\Facades\Storage;
+use Generator;
 
 class ProcessDownloadJob implements ShouldQueue
 {
@@ -61,16 +62,20 @@ class ProcessDownloadJob implements ShouldQueue
 				$options["resume_from"] = $this->download->downloaded_size;
 			}
 
-			// Start download
-			$result = $handler->handle(
+			// Start download and iterate through generator
+			$progressGenerator = $handler->handle(
 				$this->download->url,
 				Storage::path($tempPath),
 				$options
 			);
 
-			// Process progress updates
-			foreach ($result as $progressData) {
-				if ($this->download->status === DownloadStatus::PENDING) {
+			// Process progress updates from generator
+			foreach ($progressGenerator as $progressData) {
+				if (isset($progressData["error"])) {
+					throw new \Exception($progressData["error"]);
+				}
+
+				if ($this->download->status === DownloadStatus::PAUSED) {
 					$this->release(60); // Release job for 60 seconds
 					break;
 				}
@@ -81,11 +86,12 @@ class ProcessDownloadJob implements ShouldQueue
 				}
 
 				$this->updateProgress($progressData, $tempPath);
-			}
 
-			// Complete download
-			if (!isset($progressData["completed"]) || $progressData["completed"]) {
-				$this->completeDownload($tempPath, $finalPath);
+				// Check if download is completed
+				if (isset($progressData["completed"]) && $progressData["completed"]) {
+					$this->completeDownload($tempPath, $finalPath);
+					break;
+				}
 			}
 		} catch (\Exception $e) {
 			$this->download->update([
@@ -104,14 +110,14 @@ class ProcessDownloadJob implements ShouldQueue
 			"progress" => $data["progress"] ?? 0,
 		];
 
-		if (isset($data["total"])) {
+		if (isset($data["total"]) && $data["total"] > 0) {
 			$updates["total_size"] = $data["total"];
 		}
 
 		// Calculate speed and ETA
 		if ($this->download->started_at) {
 			$elapsed = now()->diffInSeconds($this->download->started_at);
-			if ($elapsed > 0) {
+			if ($elapsed > 0 && isset($updates["downloaded_size"])) {
 				$updates["speed"] = $updates["downloaded_size"] / $elapsed;
 
 				if ($updates["speed"] > 0 && isset($data["total"])) {
@@ -137,7 +143,9 @@ class ProcessDownloadJob implements ShouldQueue
 	protected function completeDownload(string $tempPath, string $finalPath)
 	{
 		// Move from temp to final location
-		Storage::move($tempPath, $finalPath);
+		if (Storage::exists($tempPath)) {
+			Storage::move($tempPath, $finalPath);
+		}
 
 		$this->download->update([
 			"status" => DownloadStatus::COMPLETED,

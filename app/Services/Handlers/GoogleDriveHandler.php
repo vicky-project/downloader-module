@@ -2,8 +2,9 @@
 
 namespace Modules\Downloader\Services\Handlers;
 
-use Illuminate\Support\Facades\Http;
 use Modules\Downloader\Services\BaseDownloadHandler;
+use Illuminate\Support\Facades\Http;
+use Generator;
 
 class GoogleDriveHandler extends BaseDownloadHandler
 {
@@ -33,7 +34,7 @@ class GoogleDriveHandler extends BaseDownloadHandler
 		string $url,
 		string $savePath,
 		array $options = []
-	): array {
+	): Generator {
 		// Extract file ID and get direct download link
 		preg_match("/\/file\/d\/([^\/]+)/", $url, $matches);
 		$fileId = $matches[1] ?? null;
@@ -42,6 +43,12 @@ class GoogleDriveHandler extends BaseDownloadHandler
 
 		// Use parent's direct download handling
 		$directHandler = new DirectDownloadHandler();
-		return $directHandler->handle($downloadUrl, $savePath, $options);
+
+		foreach (
+			$directHandler->handle($downloadUrl, $savePath, $options)
+			as $progress
+		) {
+			yield $progress;
+		}
 	}
 }
