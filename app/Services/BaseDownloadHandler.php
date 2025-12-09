@@ -23,11 +23,11 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 			$headers = $response->headers();
 
 			return [
-				"size" => $headers->get("content-length")
-					? (int) $headers->get("content-length")
+				"size" => isset($headers["content-length"])
+					? (int) $headers["content-length"]
 					: null,
-				"mime_type" => $headers->get("content-type"),
-				"accept_ranges" => $headers->get("accept-ranges") === "bytes",
+				"mime_type" => $headers["content-type"],
+				"accept_ranges" => $headers["accept-ranges"] === "bytes",
 				"filename" => $this->extractFilename($url, $headers),
 			];
 		} catch (\Exception $e) {
@@ -43,11 +43,11 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 	protected function extractFilename(string $url, $headers): string
 	{
 		// Try to get filename from Content-Disposition header
-		if ($headers->get("content-disposition")) {
+		if (isset($headers["content-disposition"])) {
 			if (
 				preg_match(
 					'/filename="?([^"]+)"?/i',
-					$headers->get("content-disposition"),
+					$headers["content-disposition"],
 					$matches
 				)
 			) {
