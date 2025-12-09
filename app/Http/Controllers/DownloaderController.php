@@ -6,6 +6,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Number;
+use Illuminate\Http\StreamedEvent;
 use Illuminate\Support\Facades\Validator;
 use Modules\Downloader\Models\Download;
 use Modules\Downloader\Constants\Permissions;
@@ -160,7 +161,7 @@ class DownloaderController extends Controller
 					$download = Download::where("job_id", $job_id)->first();
 
 					if (!$download) {
-						yield $this->sentEvent();
+						yield $this->sentEvent("error", ["error" => "Job not found."]);
 						ob_flush();
 						flush();
 						break;
@@ -349,5 +350,10 @@ class DownloaderController extends Controller
 		} else {
 			return round($seconds / 3600, 1) . " hours";
 		}
+	}
+
+	private function sentEvent(string $event, array $data)
+	{
+		return new StreamedEvent(event: $event, data: $data);
 	}
 }
