@@ -30,12 +30,12 @@ class URLTypeDetector
 	protected function registerStrategies()
 	{
 		$this->strategies = [
-			new \Modules\DownloadManager\Services\Strategies\DirectFileStrategy(),
-			new \Modules\DownloadManager\Services\Strategies\GoogleDriveStrategy(),
-			new \Modules\DownloadManager\Services\Strategies\DropboxStrategy(),
-			new \Modules\DownloadManager\Services\Strategies\OneDriveStrategy(),
-			new \Modules\DownloadManager\Services\Strategies\StreamingStrategy(),
-			new \Modules\DownloadManager\Services\Strategies\GenericStrategy(),
+			new \Modules\Downloader\Services\Strategies\DirectFileStrategy(),
+			new \Modules\Downloader\Services\Strategies\GoogleDriveStrategy(),
+			new \Modules\Downloader\Services\Strategies\DropboxStrategy(),
+			new \Modules\Downloader\Services\Strategies\OneDriveStrategy(),
+			new \Modules\Downloader\Services\Strategies\StreamingStrategy(),
+			new \Modules\Downloader\Services\Strategies\GenericStrategy(),
 		];
 	}
 
@@ -199,10 +199,10 @@ class URLTypeDetector
 		$acceptRanges = $info["accept_ranges"] ?? false;
 
 		if ($isAttachment || $acceptRanges) {
-			return new \Modules\DownloadManager\Services\Strategies\DirectFileStrategy();
+			return new \Modules\Downloader\Services\Strategies\DirectFileStrategy();
 		}
 
 		// Default to generic strategy
-		return new \Modules\DownloadManager\Services\Strategies\GenericStrategy();
+		return new \Modules\Downloader\Services\Strategies\GenericStrategy();
 	}
 }
