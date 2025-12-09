@@ -162,8 +162,6 @@ class DownloaderController extends Controller
 
 					if (!$download) {
 						yield $this->sentEvent("error", ["error" => "Job not found."]);
-						ob_flush();
-						flush();
 						break;
 					}
 
@@ -182,8 +180,6 @@ class DownloaderController extends Controller
 						];
 
 						yield $this->sentEvent("progress", $data);
-						ob_flush();
-						flush();
 
 						$lastProgress = $download->progress;
 						$lastUpdate = now();
@@ -200,10 +196,10 @@ class DownloaderController extends Controller
 							"status" => $download->status,
 						]);
 
-						ob_flush();
-						flush();
 						break;
 					}
+					ob_flush();
+					flush();
 
 					sleep(1);
 				}
