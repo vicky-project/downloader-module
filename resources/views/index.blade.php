@@ -101,7 +101,7 @@
                 </svg>
                 <span>Chunked Download</span>
                 @endif
-                @if(isset($platform["supports_resume"))
+                @if(isset($platform["supports_resume"]))
                 <svg class="icon me-2">
                   <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. $platform['supports_resume'] ? 'check-circle' : 'x-circle') }}"></use>
                 </svg>
