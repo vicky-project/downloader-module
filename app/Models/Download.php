@@ -44,6 +44,15 @@ class Download extends Model
 		"completed_at" => "datetime",
 	];
 
+	public static function boot()
+	{
+		static::creating(function ($model) {
+			if (!$model->job_id) {
+				$model->job_id = Str::uuid()->toString();
+			}
+		});
+	}
+
 	public function user()
 	{
 		return $this->belongsTo(\App\Models\User::class);
