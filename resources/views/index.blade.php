@@ -22,11 +22,11 @@
           <label for="form-url-input">Masukkan URL</label>
         </div>
         <div class="mt-4 pt-2 border-top border-primary">
-          <button type="button" id="check-button" class="btn btn-success">
+          <button type="button" id="preview-button" class="btn btn-success">
             <svg class="icon me-2">
-              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-paper-plane') }}"></use>
+              <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-zoom') }}"></use>
             </svg>
-            Check
+            Preview
           </button>
         </div>
       </div>
@@ -72,53 +72,6 @@
     </div>
   </div>
 </div>
-
-<!-- Modal Show Platform -->
-<div class="modal fade" id="modalShowPlatform" tabindex="-1" aria-labelledby="modalShowPlatformLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalShowPlatformLabelLabel">Supported Platform</h5>
-        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        @foreach($supportedPlatforms as $name => $platform)
-        <div class="row mb-4 pb-2 border-bottom border-primary">
-          <div class="col">
-            <h6 class="fw-wight-bold">{{ $name }}</h6>
-            <ul class="list-group list-group-flush">
-              <li class="list-group-item">
-                <p class="text-muted ms-2">
-                  {{ $platform["description"] ?? "" }}
-                </p>
-              </li>
-              @if(isset($platform["supports_chunking"]))
-              <li class="list-group-item">
-                <svg class="icon me-2 {{$platform['supports_chunking'] ? 'text-success' : 'text-danger'}}">
-                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. ($platform['supports_chunking'] ? 'check-circle' : 'x-circle')) }}"></use>
-                </svg>
-                <span>Chunked Download</span>
-              </li>
-              @endif
-              @if(isset($platform["supports_resume"]))
-              <li class="list-group-item">
-                <svg class="icon me-2 {{ $platform['supports_resume'] ? 'text-success' : 'text-danger' }}">
-                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. ($platform['supports_resume'] ? 'check-circle' : 'x-circle')) }}"></use>
-                </svg>
-                <span>Resume Support</span>
-              </li>
-              @endif
-            </ul>
-          </div>
-        </div>
-        @endforeach
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
-      </div>
-    </div>
-  </div>
-</div>
 @endsection
 
 @section('scripts')
@@ -155,10 +108,10 @@
   
   window.addEventListener("DOMContentLoaded", function() {
     const urlInput = document.getElementById('form-url-input');
-    const checkButton = document.getElementById('check-button');
+    const previewButton = document.getElementById('preview-button');
     
-    checkButton.addEventListener('click', function() {
-      if(!urlInput.value) {
+    previewButton.addEventListener('click', function() {
+      if(!urlInput.value.trim()) {
         urlInput.classList.add('is-invalid');
         return;
       }
@@ -172,10 +125,10 @@
     prevModal.addEventListener('shown.coreui.modal', function() {
       modalBody.innerHTML = '<p class="fw-wight-bold">Processing...</p>';
       
-      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value).then(res => res.json()).then(data => {
+      fetch('{{ env("APP_URL") }}/api/v1/downloaders/preview?url='+ urlInput.value.trim()).then(res => res.json()).then(data => {
         let contentModal = '';
         if(!data.success) {
-          contentModal = "Gagal mendapatkan informasi file";
+          contentModal = `<p>Gagal mendapatkan informasi file</p><p>${data.message}</p>`;
         } else {
           contentModal = `<div class="row">
             <div class="col-md-4">
@@ -190,7 +143,7 @@
               <strong>Size</strong>
             </div>
             <div class="col-md-4 ms-auto">
-              <span class="text-muted">${data.data.formatted_size}</span>
+              <span class="text-muted">${data.data.size}</span>
             </div>
           </div>
           <div class="row">
@@ -210,8 +163,19 @@
                 <div class="col-md-4">
                   <strong>Type</strong>
                 </div>
-                <div class="col-md-4 ms-auto">
+                <div class="col-md-4 ms-auto d-flex justify-content-between align-items-center">
+                  <span class="text-muted">${data.data.file_type}</span>
                   <span class="text-muted">${data.data.mime_type}</span>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">Format:</div>
+                <div class="col-md-4 ms-auto">${data.data.extension.toUpperCase()}</div>
+              </div>
+              <div class="row">
+                <div class="col-md-4">Resume Support</div>
+                <div class="col-md-4 ms-auto">
+                  ${data.data.supports_resume ? '<span class="text-success">Yes</span>' : '<span class="text-danger">No</span>'}
                 </div>
               </div>
             </div>

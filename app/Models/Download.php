@@ -11,65 +11,61 @@ use Illuminate\Support\Str;
 
 class Download extends Model
 {
-	use HasFactory;
-
-	/**
-	 * The attributes that are mass assignable.
-	 */
 	protected $fillable = [
 		"user_id",
 		"job_id",
-		"url",
 		"filename",
-		"file_extension",
-		"mime_type",
-		"file_size",
-		"downloaded_size",
+		"original_filename",
+		"url",
+		"type",
 		"status",
-		"connections",
 		"progress",
-		"download_speed",
+		"total_size",
+		"downloaded_size",
+		"speed",
+		"time_remaining",
 		"metadata",
-		"save_path",
 		"error_message",
-		"resume_info",
+		"file_path",
+		"mime_type",
 		"started_at",
 		"completed_at",
 	];
 
 	protected $casts = [
 		"metadata" => "array",
-		"resume_info" => "array",
-		"file_size" => "integer",
-		"downloaded_size" => "integer",
-		"progress" => "float",
-		"download_speed" => "float",
 		"status" => DownloadStatus::class,
+		"progress" => "decimal:2",
+		"total_size" => "integer",
+		"downloaded_size" => "integer",
+		"speed" => "integer",
+		"time_remaining" => "integer",
 		"started_at" => "datetime",
 		"completed_at" => "datetime",
 	];
 
-	protected static function boot()
+	public function user()
 	{
-		parent::boot();
-
-		static::creating(function ($model) {
-			if (empty($model->job_id)) {
-				$model->job_id = Str::uuid()->toString();
-			}
-		});
+		return $this->belongsTo(\App\Models\User::class);
 	}
 
-	/**
-	 * Relationship dengan User
-	 */
-	public function user(): BelongsTo
+	public function isResumable()
 	{
-		return $this->belongsTo(User::class);
+		return in_array($this->type, ["direct", "google_drive"]);
 	}
 
-	public function queues()
+	public function canPause()
 	{
-		return $this->hasMany(DownloadQueue::class);
+		return $this->isResumable() &&
+			$this->status === DownloadStatus::DOWNLOADING;
+	}
+
+	public function getFormattedSize()
+	{
+		if (!$this->total_size) {
+			return "Unknown";
+		}
+
+		return Number::fileSize($this->total_size);
 	}
 }

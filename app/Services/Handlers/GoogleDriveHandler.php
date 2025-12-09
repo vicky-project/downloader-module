@@ -1,113 +1,47 @@
 <?php
+
 namespace Modules\Downloader\Services\Handlers;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Modules\Downloader\Enums\UrlType;
-use Modules\Downloader\Models\DownloadJob;
+use Modules\Downloader\Services\BaseDownloadHandler;
 
 class GoogleDriveHandler extends BaseDownloadHandler
 {
-	protected string $name = "google_drive";
-	protected int $priority = 90;
-
-	public function supports(UrlType $urlType): bool
+	public function supports(string $url): bool
 	{
-		return $urlType === UrlType::GOOGLE_DRIVE;
+		return str_contains($url, "drive.google.com") &&
+			str_contains($url, "/file/d/");
 	}
 
-	public function getFilename(string $url): string
+	public function getInfo(string $url): array
 	{
-		$fileId = $this->extractFileId($url);
-		return $fileId
-			? "google_drive_{$fileId}_" . time()
-			: "google_drive_file_" . time();
-	}
+		// Extract file ID from Google Drive URL
+		preg_match("/\/file\/d\/([^\/]+)/", $url, $matches);
+		$fileId = $matches[1] ?? null;
 
-	public function validate(string $url): array
-	{
-		$fileId = $this->extractFileId($url);
-
-		if (!$fileId) {
-			return [
-				"valid" => false,
-				"message" => "Invalid Google Drive URL format",
-			];
-		}
-
-		return [
-			"valid" => true,
-			"message" => null,
-		];
-	}
-
-	public function getDirectDownloadUrl(string $url): ?string
-	{
-		$fileId = $this->extractFileId($url);
-		if (!$fileId) {
-			return null;
-		}
-
-		return "https://drive.google.com/uc?export=download&id=" . $fileId;
-	}
-
-	public function download(
-		DownloadJob $downloadJob,
-		?callable $progressCallback = null
-	): void {
-		$fileId = $this->extractFileId($downloadJob->url);
 		if (!$fileId) {
 			throw new \Exception("Invalid Google Drive URL");
 		}
 
-		// Try to get file info first
-		$fileInfo = $this->getFileInfoFromApi($fileId);
-		if ($fileInfo) {
-			$downloadJob->update([
-				"original_filename" =>
-					$fileInfo["name"] ?? $downloadJob->original_filename,
-			]);
-		}
+		// Get download link (requires Google Drive API key in production)
+		$downloadUrl = "https://drive.google.com/uc?id={$fileId}&export=download";
 
-		// Use parent download with direct URL
-		parent::download($downloadJob, $progressCallback);
+		return parent::getInfo($downloadUrl);
 	}
 
-	private function extractFileId(string $url): ?string
-	{
-		$patterns = ["/\/d\/([^\/]+)/", "/id=([^&]+)/", "/\/folders\/([^\/?]+)/"];
+	public function handle(
+		string $url,
+		string $savePath,
+		array $options = []
+	): array {
+		// Extract file ID and get direct download link
+		preg_match("/\/file\/d\/([^\/]+)/", $url, $matches);
+		$fileId = $matches[1] ?? null;
 
-		foreach ($patterns as $pattern) {
-			if (preg_match($pattern, $url, $matches)) {
-				return $matches[1];
-			}
-		}
+		$downloadUrl = "https://drive.google.com/uc?id={$fileId}&export=download";
 
-		return null;
-	}
-
-	private function getFileInfoFromApi(string $fileId): ?array
-	{
-		try {
-			$apiKey = config("services.google_drive.api_key");
-			if (!$apiKey) {
-				return null;
-			}
-
-			$response = Http::withOptions([
-				"headers" => $this->getDefaultHeaders(),
-			])->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
-				"key" => $apiKey,
-				"fields" => "name,size,mimeType",
-			]);
-
-			if ($response->successful()) {
-				return $response->json();
-			}
-		} catch (\Exception $e) {
-			Log::warning("Google Drive API error: " . $e->getMessage());
-		}
-
-		return null;
+		// Use parent's direct download handling
+		$directHandler = new DirectDownloadHandler();
+		return $directHandler->handle($downloadUrl, $savePath, $options);
 	}
 }

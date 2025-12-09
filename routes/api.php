@@ -7,7 +7,7 @@ Route::prefix("v1")->group(function () {
 	Route::prefix("downloaders")
 		->name("downloader.")
 		->group(function () {
-			Route::get("preview", [DownloaderController::class, "analyzeUrl"])->name(
+			Route::get("preview", [DownloaderController::class, "preview"])->name(
 				"preview"
 			);
 

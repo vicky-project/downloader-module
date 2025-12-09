@@ -14,32 +14,32 @@ return new class extends Migration {
 			$table->id();
 			$table
 				->foreignId("user_id")
-				->nullable()
-				->constrained("users")
+				->constrained()
 				->onDelete("cascade");
 			$table
 				->string("job_id")
 				->unique()
-				->index();
+				->nullable();
+			$table->string("filename");
+			$table->string("original_filename");
 			$table->string("url");
-			$table->string("filename")->nullable();
-			$table->string("file_extension")->nullable();
-			$table->string("mime_type")->nullable();
-			$table->bigInteger("file_size")->nullable();
-			$table->bigInteger("downloaded_size")->default(0);
-			$table->string("status")->default("pending"); // pending, downloading, completed, failed, processing, paused, cancelled
-			$table->integer("connections")->default(1);
+			$table->string("type"); // google_drive, youtube, direct, etc
+			$table->string("status")->default("pending"); // pending, downloading, paused, completed, failed
 			$table->decimal("progress", 5, 2)->default(0);
-			$table->float("download_speed")->nullable();
-			$table->text("metadata")->nullable();
+			$table->bigInteger("total_size")->nullable();
+			$table->bigInteger("downloaded_size")->default(0);
+			$table->integer("speed")->nullable(); // bytes per second
+			$table->integer("time_remaining")->nullable(); // seconds
+			$table->text("metadata")->nullable(); // JSON data for resuming
 			$table->text("error_message")->nullable();
-			$table->string("save_path")->nullable();
-			$table->json("resume_info")->nullable();
+			$table->string("file_path")->nullable();
+			$table->string("mime_type")->nullable();
 			$table->timestamp("started_at")->nullable();
 			$table->timestamp("completed_at")->nullable();
 			$table->timestamps();
 
-			$table->index(["status", "created_at"]);
+			$table->index(["user_id", "status"]);
+			$table->index(["job_id"]);
 		});
 	}
 
