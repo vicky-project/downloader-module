@@ -40,6 +40,15 @@ class ProcessDownloadJob implements ShouldQueue
 			"started_at" => now(),
 		]);
 
+		event(
+			new DownloadProgress(
+				$this->download->job_id,
+				0,
+				0,
+				$this->download->total_size
+			)
+		);
+
 		try {
 			$handler = $this->downloadManager->getHandler($this->download->url);
 
@@ -98,6 +107,15 @@ class ProcessDownloadJob implements ShouldQueue
 				"status" => DownloadStatus::FAILED,
 				"error_message" => $e->getMessage(),
 			]);
+
+			event(
+				new DownloadProgress(
+					$thi->download->job_id,
+					$this->download->progress,
+					$this->download->downloaded_size,
+					$this->download->total_size
+				)
+			);
 
 			throw $e; // Allow job retry
 		}

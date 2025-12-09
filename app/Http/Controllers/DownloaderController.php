@@ -115,6 +115,12 @@ class DownloaderController extends Controller
 				\Auth::id(),
 				$request->url
 			);
+			$downloadJob->update([
+				"job_id" => str()
+					->uuid()
+					->toString(),
+				"status" => DownloadStatus::PENDING,
+			]);
 
 			ProcessDownloadJob::dispatch($downloadJob);
 
