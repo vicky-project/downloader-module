@@ -111,10 +111,12 @@ class DownloaderController extends Controller
 		\DB::beginTransaction();
 
 		try {
-			$downloadJob = $this->downloader->startDownload(
-				$request->url,
-				\Auth::id()
+			$downloadJob = $this->downloadManager->startDownload(
+				\Auth::id(),
+				$request->url
 			);
+
+			ProcessDownloadJob::dispatch($downloadJob);
 
 			\DB::commit();
 
