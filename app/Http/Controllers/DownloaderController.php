@@ -206,8 +206,6 @@ class DownloaderController extends Controller
 
 						break;
 					}
-					ob_flush();
-					flush();
 
 					sleep(1);
 				}
