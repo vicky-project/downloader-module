@@ -4,7 +4,7 @@ namespace Modules\Downloader\Contracts;
 
 use Generator;
 
-interface DownloadHandler
+interface DownloadHandlerInterface
 {
 	/**
 	 * Handle the download process
