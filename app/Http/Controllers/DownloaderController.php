@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Constants\Permissions;
 use Modules\Downloader\Services\UrlProcessor;
-use Modules\Downloader\Services\UrlTypeDetector;
+use Modules\Downloader\Services\URLTypeDetector;
 use Modules\Downloader\Services\DownloadManager;
 use Modules\Downloader\Services\DownloadService;
 use Modules\Downloader\Services\EventStreamService;
@@ -31,7 +31,7 @@ class DownloaderController extends Controller
 		$this->downloader = new DownloadService();
 		$this->stream = new EventStreamService();
 
-		$this->urlTypeDetector = new UrlTypeDetector();
+		$this->urlTypeDetector = new URLTypeDetector();
 		$this->downloadManager = new DownloadManager();
 
 		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
