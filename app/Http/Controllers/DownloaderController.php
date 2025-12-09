@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Modules\Downloader\Models\DownloadJob;
 use Modules\Downloader\Constants\Permissions;
 use Modules\Downloader\Services\UrlProcessor;
+use Modules\Downloader\Services\UrlTypeDetector;
+use Modules\Downloader\Services\DownloadManager;
 use Modules\Downloader\Services\DownloadService;
 use Modules\Downloader\Services\EventStreamService;
 use Modules\Downloader\Enums\DownloadStatus;
@@ -20,11 +22,17 @@ class DownloaderController extends Controller
 	protected DownloadService $downloader;
 	protected EventStreamService $stream;
 
+	protected $urlTypeDetector;
+	protected $downloadManager;
+
 	public function __construct()
 	{
 		$this->processor = new UrlProcessor();
 		$this->downloader = new DownloadService();
 		$this->stream = new EventStreamService();
+
+		$this->urlTypeDetector = new UrlTypeDetector();
+		$this->downloadManager = new DownloadManager();
 
 		$this->middleware(["permission:" . Permissions::VIEW_DOWNLOADERS])->only([
 			"index",
@@ -36,7 +44,9 @@ class DownloaderController extends Controller
 	 */
 	public function index(Request $request)
 	{
-		return view("downloader::index");
+		$supportedPlatforms = $this->downloadManager->getSupportedPlatforms();
+
+		return view("downloader::index", compact("supportedPlatforms"));
 	}
 
 	/**

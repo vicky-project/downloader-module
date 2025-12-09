@@ -8,15 +8,18 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Modules\Downloader\Models\Download;
+use Modules\Downloader\Enums\DownloadStatus;
 use Modules\Downloader\Services\ChunkDownloader;
+use Modules\Downloader\Services\EnhancedDownloadManager;
 
 class ProcessDownloadJob implements ShouldQueue
 {
 	use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
 	public $tries = 3;
-	public $timeout = 3600; // 1 hour
+	public $timeout = 7200; // 2 hour
 	public $maxExceptions = 3;
+	public $backoff = [60, 300, 600];
 
 	protected $download;
 
@@ -27,17 +30,28 @@ class ProcessDownloadJob implements ShouldQueue
 
 	public function handle()
 	{
-		$this->download->update(["status" => "processing"]);
+		$downloadManager = new EnhancedDownloadManager();
+		$downloadManager->processDownload($this->download);
 
-		$downloader = new ChunkDownloader();
-		$downloader->download($this->download);
+		// $this->download->update(["status" => "processing"]);
+
+		// $downloader = new ChunkDownloader();
+		// $downloader->download($this->download);
+
+		$this->release();
 	}
 
 	public function failed(\Throwable $exception)
 	{
 		$this->download->update([
-			"status" => "failed",
+			"status" => DownloadStatus::FAILED,
 			"error_message" => $exception->getMessage(),
+		]);
+
+		logger()->error("Download job failed: " . $exception->getMessage(), [
+			"job_id" => $this->download->job_id,
+			"url" => $this->download->url,
+			"exception" => $exception->getTraceAsString(),
 		]);
 	}
 }

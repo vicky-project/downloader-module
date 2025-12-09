@@ -4,7 +4,16 @@
 
 @section('content')
 <div class="card">
-  <div class="card-header"><strong>Downloader</strong></div>
+  <div class="card-header text-end">
+    <div class="float-start me-auto">
+      <strong>Downloader</strong>
+    </div>
+    <button class="btn bg-warning" data-coreui-toggle="modal" data-coreui-target="#modalShowPlatform">
+      <svg class="icon">
+        <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-spreadsheet') }}"></use>
+      </svg>
+    </button>
+  </div>
   <div class="card-body">
     <div class="row mb-2">
       <div class="col">
@@ -60,6 +69,53 @@
         <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Cancel</button>
       </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Show Platform -->
+<div class="modal fade" id="modalShowPlatform" tabindex="-1" aria-labelledby="modalShowPlatformLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalShowPlatformLabelLabel">Supported Platform</h5>
+        <button type="button" class="btn-close" data-coreui-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        @foreach($supportedPlatforms as $name => $platform)
+        <div class="row mb-4 pb-2 border-bottom border-primary">
+          <div class="col">
+            <h4 class="fw-wight-bold">{{ $name }}</h4>
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">{{ $platform["description"] ?? "" }}</li>
+            </ul>
+          </div>
+        </div>
+        <div class="row mb-4 pb-2 border-bottom border-primary">
+          <div class="col">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item">
+                @if(isset($platform["supports_chunking"]))
+                <svg class="icon me-2 text-success">
+                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. $platform['supports_chunking'] ? 'check-circle' : 'x-circle') }}"></use>
+                </svg>
+                <span>Chunked Download</span>
+                @endif
+                @if(isset($platform["supports_resume"))
+                <svg class="icon me-2">
+                  <use xlink:href="{{ asset('vendors/@coreui/icons/svg/free.svg#cil-'. $platform['supports_resume'] ? 'check-circle' : 'x-circle') }}"></use>
+                </svg>
+                <span>Resume Support</span>
+                @endif
+              </li>
+            </ul>
+          </div>
+        </div>
+        @endforeach
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-coreui-dismiss="modal">Close</button>
+      </div>
     </div>
   </div>
 </div>
