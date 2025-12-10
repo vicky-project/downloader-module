@@ -56,8 +56,9 @@ class DirectDownloadHandler extends BaseDownloadHandler
 
 			// Only yield if progress changed significantly
 			if (
-				abs($progress - $lastYieldedProgress) >= 1 ||
-				$timeSinceLastYield >= 1.0
+				abs($progress - $lastYieldedProgress) >= 0.1 ||
+				$timeSinceLastYield >= 0.5 ||
+				$progress >= 99.9
 			) {
 				logger()->debug("Yield progress", [
 					"chunk" => $chunkCount,
