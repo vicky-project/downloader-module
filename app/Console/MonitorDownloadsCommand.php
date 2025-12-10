@@ -35,7 +35,7 @@ class MonitorDownloadsCommand extends Command
 								$download->id,
 								substr($download->filename, 0, 30),
 								$download->progress . "%",
-								$download->status,
+								$download->status->toString(),
 								$download->speed
 									? Number::fileSize($download->speed) . "/s"
 									: "N/A",
