@@ -191,9 +191,6 @@ class DownloaderController extends Controller
 
 						yield $this->sentEvent("progress", $data);
 
-						ob_flush();
-						flush();
-
 						$lastProgress = $download->progress;
 						$lastUpdate = now();
 					}
