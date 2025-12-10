@@ -84,33 +84,70 @@ abstract class BaseDownloadHandler implements DownloadHandlerInterface
 			$headers["Range"] = "bytes={$start}-";
 		}
 
-		$response = Http::withOptions([
-			"stream" => true,
-			"timeout" => $this->timeout,
-			"headers" => $headers,
-		])->get($url);
+		logger()->info("Start chunked download.", [
+			"url" => $url,
+			"save_path" => $savePath,
+			"start_byte" => $start,
+			"chunk_size" => $this->chunkSize,
+		]);
 
-		if (!$response->successful()) {
-			throw new \Exception(
-				"Failed to download from URL: " . $response->status()
-			);
+		try {
+			$response = Http::withOptions([
+				"stream" => true,
+				"timeout" => $this->timeout,
+				"headers" => $headers,
+			])->get($url);
+
+			if (!$response->successful()) {
+				throw new \Exception(
+					"Failed to download from URL: " . $response->status()
+				);
+			}
+
+			$file = fopen($savePath, $start !== null ? "ab" : "wb");
+			$downloaded = $start ?? 0;
+			$chunkCount = 0;
+
+			$body = $response->toPsrResponse()->getBody();
+			while (!$body->eof()) {
+				$chunk = $body->read($this->chunkSize);
+				$chunkSizeBytes = strlen($chunk);
+
+				if ($chunkSizeBytes === 0) {
+					usleep(100000);
+					continue;
+				}
+
+				fwrite($file, $chunk);
+				$downloaded += $chunkSizeBytes;
+				$chunkCount++;
+
+				logger()->debug("Chunk downloaded", [
+					"chunk_number" => $chunkCount,
+					"chunk_size" => $chunkSizeBytes,
+					"total_downloaded" => $downloaded,
+					"eof" => $body->eof(),
+				]);
+
+				// Yield progress
+				yield $downloaded;
+			}
+
+			fclose($file);
+			$body->close();
+
+			logger()->info("Chunked download completed", [
+				"total_chunks" => $chunkCount,
+				"total_downloaded" => $downloaded,
+			]);
+		} catch (\Exception $e) {
+			logger()->error("Error in chunked download.", [
+				"error" => $e->getMessage(),
+				"url" => $url,
+			]);
+
+			throw $e;
 		}
-
-		$file = fopen($savePath, $start !== null ? "ab" : "wb");
-		$downloaded = $start ?? 0;
-
-		$body = $response->toPsrResponse()->getBody();
-		while (!$body->eof()) {
-			$chunk = $body->read($this->chunkSize);
-			fwrite($file, $chunk);
-			$downloaded += strlen($chunk);
-
-			// Yield progress
-			yield $downloaded;
-		}
-
-		fclose($file);
-		$body->close();
 	}
 
 	/**

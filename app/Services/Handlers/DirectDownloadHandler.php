@@ -23,27 +23,61 @@ class DirectDownloadHandler extends BaseDownloadHandler
 		$startByte = $options["resume_from"] ?? 0;
 
 		$totalSize = $info["size"];
-		$downloaded = 0;
-		$lastProgress = 0;
+		$downloaded = $startByte;
+		$lastYieldedProgress = 0;
+		$lastYieldedTime = microtime(true);
+
+		logger()->info("Download info", [
+			"total_size" => $totalSize,
+			"start_byte" => $startByte,
+			"supports_resume" => $info["accept_ranges"],
+		]);
+
+		yield [
+			"downloaded" => $downloaded,
+			"total" => $totalSize,
+			"progress" => $totalSize ? ($downloaded / $totalSize) * 100 : 0,
+		];
+
+		$chunkCount = 0;
 
 		foreach (
 			$this->downloadChunked($url, $savePath, $startByte)
 			as $chunkSize
 		) {
+			$chunkCount++;
 			$downloaded = $chunkSize;
+
+			$currentTime = microtime(true);
+			$timeSinceLastYield = $currentTime - $lastYieldedTime;
 
 			// Calculate progress if total size is known
 			$progress = $totalSize ? ($downloaded / $totalSize) * 100 : 0;
 
 			// Only yield if progress changed significantly
-			if (abs($progress - $lastProgress) >= 0.1 || $downloaded == $totalSize) {
-				$lastProgress = $progress;
-
+			if (
+				abs($progress - $lastYieldedProgress) >= 1 ||
+				$timeSinceLastYield >= 1.0
+			) {
+				logger()->debug("Yield progress", [
+					"chunk" => $chunkCount,
+					"downloaded" => $downloaded,
+					"total" => $totalSize,
+					"progress" => $progress,
+					"time_since_last_yield" => $timeSinceLastYield,
+				]);
 				yield [
 					"downloaded" => $downloaded,
 					"total" => $totalSize,
 					"progress" => round($progress, 2),
 				];
+
+				$lastYieldedProgress = $progress;
+				$lastYieldedTime = $currentTime;
+			}
+
+			if ($downloaded >= $totalSize && $totalSize > 0) {
+				break;
 			}
 		}
 

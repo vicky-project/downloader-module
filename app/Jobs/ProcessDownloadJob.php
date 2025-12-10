@@ -33,9 +33,10 @@ class ProcessDownloadJob implements ShouldQueue
 
 	public function handle()
 	{
+		logger()->info("Starting download job for id: " . $this->download->job_id);
+
 		// Update job ID
 		$this->download->update([
-			"job_id" => $this->job->getJobId(),
 			"status" => DownloadStatus::DOWNLOADING,
 			"started_at" => now(),
 		]);
@@ -51,6 +52,11 @@ class ProcessDownloadJob implements ShouldQueue
 
 		try {
 			$handler = $this->downloadManager->getHandler($this->download->url);
+
+			logger()->info("Handler found.", [
+				"handler" => get_class($handler),
+				"url" => $this->download->url,
+			]);
 
 			// Prepare save path
 			$userFolder = "downloads/user_{$this->download->user_id}";
@@ -71,6 +77,8 @@ class ProcessDownloadJob implements ShouldQueue
 				$options["resume_from"] = $this->download->downloaded_size;
 			}
 
+			logger()->info("Before calling handler method");
+
 			// Start download and iterate through generator
 			$progressGenerator = $handler->handle(
 				$this->download->url,
@@ -78,13 +86,27 @@ class ProcessDownloadJob implements ShouldQueue
 				$options
 			);
 
+			logger()->info("Generator created.", [
+				"generator_class" => get_class($progressGenerator),
+			]);
+
 			// Process progress updates from generator
+			$iterationCount = 0;
 			foreach ($progressGenerator as $progressData) {
+				$iterationCount++;
+
+				logger()->info("Generator iteration", [
+					"iteration" => $iterationCount,
+					"progres_data" => $progressData,
+					"download_status" => $this->download->fresh()->status,
+				]);
+
 				if (isset($progressData["error"])) {
 					throw new \Exception($progressData["error"]);
 				}
 
 				$this->download->refresh();
+
 				if ($this->download->status === DownloadStatus::PAUSED) {
 					$this->release(60); // Release job for 60 seconds
 					break;
@@ -112,7 +134,17 @@ class ProcessDownloadJob implements ShouldQueue
 					break;
 				}
 			}
+
+			logger()->info("Generator loop finished", [
+				"iteration" => $iterationCount,
+				"final_progress" => $this->download->fresh()->progress ?? 0,
+			]);
 		} catch (\Exception $e) {
+			logger()->error("Download failed.", [
+				"error" => $e->getMessage(),
+				"trace" => $e->getTraceAsString(),
+			]);
+
 			$this->download->update([
 				"status" => DownloadStatus::FAILED,
 				"error_message" => $e->getMessage(),
@@ -146,11 +178,11 @@ class ProcessDownloadJob implements ShouldQueue
 		if ($this->download->started_at) {
 			$elapsed = now()->diffInSeconds($this->download->started_at);
 			if ($elapsed > 0 && isset($updates["downloaded_size"])) {
-				$updates["speed"] = $updates["downloaded_size"] / $elapsed;
+				$updates["speed"] = (int) $updates["downloaded_size"] / $elapsed;
 
 				if ($updates["speed"] > 0 && isset($data["total"])) {
 					$remaining = $data["total"] - $updates["downloaded_size"];
-					$updates["time_remaining"] = $remaining / $updates["speed"];
+					$updates["time_remaining"] = (int) ($remaining / $updates["speed"]);
 				}
 			}
 		}
