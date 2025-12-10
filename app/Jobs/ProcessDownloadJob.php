@@ -152,7 +152,7 @@ class ProcessDownloadJob implements ShouldQueue
 
 			event(
 				new DownloadProgress(
-					$thi->download->job_id,
+					$this->download->job_id,
 					$this->download->progress,
 					$this->download->downloaded_size,
 					$this->download->total_size
