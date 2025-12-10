@@ -43,7 +43,9 @@ class DownloaderServiceProvider extends ServiceProvider
 	 */
 	protected function registerCommands(): void
 	{
-		// $this->commands([]);
+		$this->commands([
+			\Modules\Downloader\Console\MonitorDownloadsCommand::class,
+		]);
 	}
 
 	/**
