@@ -84,6 +84,7 @@ class ProcessDownloadJob implements ShouldQueue
 					throw new \Exception($progressData["error"]);
 				}
 
+				$this->download->refresh();
 				if ($this->download->status === DownloadStatus::PAUSED) {
 					$this->release(60); // Release job for 60 seconds
 					break;
@@ -95,6 +96,15 @@ class ProcessDownloadJob implements ShouldQueue
 				}
 
 				$this->updateProgress($progressData, $tempPath);
+
+				event(
+					new DownloadProgress(
+						$this->download->job_id,
+						$progressData["progress"],
+						$progressData["downloaded"],
+						$progressData["total"]
+					)
+				);
 
 				// Check if download is completed
 				if (isset($progressData["completed"]) && $progressData["completed"]) {
